@@ -3,6 +3,55 @@ package Instructions;
 import Enums.Codes;
 
 public class Instructions {
+    public void decode(int[] registers, String line)
+    {
+        String[] splitLine = line.split(" ");
+        int value0 = Integer.parseInt(splitLine[0]);
+        int value1 = Integer.parseInt(splitLine[1]);
+        int value2 = Integer.parseInt(splitLine[2]);
+        int value3 = Integer.parseInt(splitLine[0]);
+        switch(value0)
+        {
+            case 8:
+                DADDI(registers, value2, value1, value3);
+                break;
+            case 32:
+                DADD(registers, value2, value1, value3);
+                break;
+            case 34:
+                DSUB(registers, value2, value1, value3);
+                break;
+            case 12:
+                DMUL(registers, value2, value1, value3);
+                break;
+            case 14:
+                DDIV(registers, value2, value1, value3);
+                break;
+            case 4:
+                BEQZ(registers, value1, value3);
+                break;
+            case 5:
+                BNEZ(registers, value1, value3);
+                break;
+            case 3:
+                JAL(registers, value3);
+                break;
+            case 2:
+                JR(registers, value1);
+                break;
+            case 35:
+                //Llama a la clase LOAD
+                break;
+            case 43:
+                //Llama a la clase STORE
+                break;
+            case 63:
+                FIN();
+                break;
+        }
+    }
+
+
     public void DADDI(int[] registers, int trgRegister, int srcRegister, int inm) {
         registers[trgRegister] = registers[srcRegister] + inm;
     }
@@ -45,6 +94,6 @@ public class Instructions {
     }
 
     public void FIN() {
-
+        //mata todo
     }
 }
