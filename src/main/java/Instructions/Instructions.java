@@ -69,7 +69,9 @@ public class Instructions {
     }
 
     public void DDIV(int[] registers, int trgRegister, int srcRegister1, int srcRegister2) {
-        registers[trgRegister] = registers[srcRegister1] / registers[srcRegister2];
+        if(registers[srcRegister2] != 0) {
+            registers[trgRegister] = registers[srcRegister1] / registers[srcRegister2];
+        }
     }
 
     public void BEQZ(int[] registers, int srcRegister, int imn) {

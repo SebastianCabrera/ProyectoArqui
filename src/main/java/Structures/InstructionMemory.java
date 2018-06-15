@@ -1,15 +1,14 @@
 package Structures;
 
-import Interfaces.MemoryInterface;
+import Abstracts.Memory;
+import Enums.Codes;
 
 import java.util.Vector;
 
-public class InstructionMemory implements MemoryInterface {
+public class InstructionMemory extends Memory {
 
-    Vector insMemory;
 
-    @Override
-    public void createMemory(int size) {
-        insMemory = new Vector<String>(size);
+    public InstructionMemory() {
+        super(Codes.INSTRUCTION_MEM_CAPACITY);
     }
 }
