@@ -43,4 +43,10 @@ public class InstructionMemory extends Memory {
     private int getDirection(int virtualDirection){
         return virtualDirection * Codes.INSTRUCTION_MEM_BEGIN;
     }
+
+    public void setWordData(Vector<Integer> word, int position){
+        for(int i = 0; i < Codes.INSTRUCTIONS_WORD_SIZE; i++){
+            this.memory.set((i + position), word.get(i));
+        }
+    }
 }

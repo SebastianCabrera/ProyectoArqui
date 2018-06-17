@@ -20,6 +20,7 @@ public enum Codes {
     public static final char C = 'C';
 
     // Tamaños
+    public static final int TOTAL_REGISTERS = 33;
     public static final int DATA_MEM_CAPACITY = 96;
     public static final int INSTRUCTION_MEM_CAPACITY = 640;
     public static final int CACHE_BLOCK_SIZE = 4;
@@ -29,7 +30,5 @@ public enum Codes {
     public static final int DATA_WORD_BYTES = 4;
     public static final int INSTRUCTIONS_WORD_BYTES = 16;
     public static final int INSTRUCTIONS_WORD_SIZE = 4;
-    public static final int TOTAL_REGISTERS = 33;
-
-
+    public static final int TOTAL_INSTRUCTION_PARAMETERS = 4;
 }

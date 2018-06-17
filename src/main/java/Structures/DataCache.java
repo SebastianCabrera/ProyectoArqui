@@ -9,7 +9,7 @@ public class DataCache extends Cache {
 
     private Vector<Vector<Integer>> cache;
 
-    public DataCache(int totalBlocks, int wordSize){
+    public DataCache(int totalBlocks){
         this.cache = new Vector<>(totalBlocks);
 
         // Inicializa la caché
@@ -20,14 +20,14 @@ public class DataCache extends Cache {
 
             // Inserta palabras vacías de 1 posición para datos
             for(int j = 0; j < 4; j++){
-                block.set(j, Codes.EMPTY);
+                block.add(Codes.EMPTY);
             }
 
             // Inicializa etiquetas y estados
-            this.tags.set(i, Codes.EMPTY);
-            this.states.set(i, Codes.I);
+            this.tags.add(Codes.EMPTY);
+            this.states.add(Codes.I);
 
-            this.cache.set(i, block);
+            this.cache.add(block);
         }
     }
 

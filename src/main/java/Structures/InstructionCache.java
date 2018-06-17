@@ -24,17 +24,17 @@ public class InstructionCache extends Cache{
                 Vector<Integer> word = new Vector<>(Codes.INSTRUCTIONS_WORD_SIZE);
 
                 for(int k = 0; k < Codes.INSTRUCTIONS_WORD_SIZE; k++){
-                    word.set(k, Codes.EMPTY);
+                    word.add(Codes.EMPTY);
                 }
 
                 block.set(j, word);
             }
 
             // Inicializa etiquetas y estados
-            this.tags.set(i, Codes.EMPTY);
-            this.states.set(i, Codes.I);
+            this.tags.add(Codes.EMPTY);
+            this.states.add(Codes.I);
 
-            this.cache.set(i, block);
+            this.cache.add(block);
         }
     }
 

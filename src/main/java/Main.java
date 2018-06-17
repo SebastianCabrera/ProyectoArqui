@@ -39,6 +39,10 @@ public class Main {
             }
         });*/
 
+        // Probando con los hilillos (hardcoding)
+        String[] files = {"0.txt", "1.txt", "2.txt", "3.txt", "4.txt", "5.txt"};
+
         Program program = new Program();
+        program.loadInstructions(files);
     }
 }
