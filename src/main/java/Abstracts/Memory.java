@@ -21,4 +21,8 @@ public abstract class Memory {
     protected int getRealDirection(int index, int direction){
         return (index * Codes.INSTRUCTIONS_WORD_BYTES) + direction;
     }
+
+    public Vector<Integer> getMemory(){
+        return this.memory;
+    }
 }

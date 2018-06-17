@@ -27,4 +27,12 @@ public abstract class Cache {
     public int getTag(int numBlock){
         return this.tags.get(numBlock);
     }
+
+    public Vector<Integer> getTags(){
+        return this.tags;
+    }
+
+    public Vector<Character> getStates(){
+        return this.states;
+    }
 }

@@ -22,4 +22,8 @@ public class Registers {
     public int getRegister(int register){
         return this.registers.get(register);
     }
+
+    public Vector<Integer> getRegisters(){
+        return this.registers;
+    }
 }

@@ -53,4 +53,8 @@ public class InstructionCache extends Cache{
     public Vector<Integer> getWord(int numBlock, int numWord){
         return this.cache.get(numBlock).get(numWord);
     }
+
+    public Vector<Vector<Vector<Integer>>> getCache(){
+        return this.cache;
+    }
 }

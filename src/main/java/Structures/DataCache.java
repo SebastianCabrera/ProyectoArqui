@@ -46,4 +46,8 @@ public class DataCache extends Cache {
     public int getWord(int numBlock, int numWord){
         return this.cache.get(numBlock).get(numWord);
     }
+
+    public Vector<Vector<Integer>> getCache(){
+        return this.cache;
+    }
 }
