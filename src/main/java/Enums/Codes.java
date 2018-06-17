@@ -4,18 +4,32 @@ public enum Codes {
 
     ENUM;
 
+    // Valores
     public static final int PC = 33;
+    public static final int DATA_MEM_BEGIN = 0;
+    public static final int DATA_MEM_END = 380;
+    public static final int INSTRUCTION_MEM_BEGIN = 384;
+    public static final int INSTRUCTION_MEM_END = 10240;
 
+    // Códigos
     public static final int EMPTY = -1;
 
-    public static final int I = -1;
+    // Etiquetas
+    public static final char I = 'I';
+    public static final char M = 'M';
+    public static final char C = 'C';
 
+    // Tamaños
     public static final int DATA_MEM_CAPACITY = 96;
     public static final int INSTRUCTION_MEM_CAPACITY = 640;
     public static final int CACHE_BLOCK_SIZE = 4;
     public static final int BLOCKS_IN_CACHE_0 = 8;
     public static final int BLOCKS_IN_CACHE_1 = 4;
-    public static final int DATA_WORDS_SIZE = 1;
+    public static final int DATA_WORD_SIZE = 1;
+    public static final int DATA_WORD_BYTES = 4;
+    public static final int INSTRUCTIONS_WORD_BYTES = 16;
     public static final int INSTRUCTIONS_WORD_SIZE = 4;
     public static final int TOTAL_REGISTERS = 33;
+
+
 }

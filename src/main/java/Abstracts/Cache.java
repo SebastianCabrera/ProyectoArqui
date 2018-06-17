@@ -9,49 +9,22 @@ import java.util.Vector;
  */
 public abstract class Cache {
 
-    private Vector<Vector<Word>> cache;
-    private Vector<Integer> tags;
-    private Vector<Integer> states;
+    protected Vector<Integer> tags;
+    protected Vector<Character> states;
 
-    public Cache(int totalBlocks, int wordSize){
-
-        this.cache = new Vector<>(totalBlocks);
-
-        // Inicializa la caché
-        for(int i = 0; i < totalBlocks; i++){
-
-            // Crea un vector de 4 palabras
-            Vector<Word> block = new Vector<>(Codes.CACHE_BLOCK_SIZE);
-
-            // Inserta palabras vacías de 1 posición para datos y de 4 para instrucciones
-            for(int j = 0; j < 4; j++){
-                block.set(j, new Word(wordSize));
-            }
-
-            // Inicializa etiquetas y estados
-            tags.set(i, Codes.EMPTY);
-            states.set(i, Codes.I);
-
-            this.cache.set(i, block);
-        }
+    public void setSate(int numBlock, char state){
+        this.states.set(numBlock, state);
     }
 
-    /**
-     * Clase que representa una palabra. El tamaño del vector es 1 o 4 dependiendo del tipo de caché
-     */
-    private class Word{
-        private Vector<Integer> wordContent;
+    public int getState(int numBlock){
+        return this.states.get(numBlock);
+    }
 
-        private Word(int size){
-            this.wordContent = new Vector<>(size);
+    public void setTag(int numBlock, int tag){
+        this.tags.set(numBlock, tag);
+    }
 
-            for(int i = 0; i < size; i++){
-                this.wordContent.set(i, -1);
-            }
-        }
-
-        private Vector<Integer> getContent(){
-            return this.wordContent;
-        }
+    public int getTag(int numBlock){
+        return this.tags.get(numBlock);
     }
 }
