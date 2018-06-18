@@ -2,42 +2,39 @@ package Instructions;
 
 import Enums.Codes;
 
+import java.util.Vector;
+
 public class Instructions {
-    public void decode(int[] registers, String line)
+    public void decode(int[] registers, Vector<Integer> word)
     {
-        String[] splitLine = line.split(" ");
-        int value0 = Integer.parseInt(splitLine[0]);
-        int value1 = Integer.parseInt(splitLine[1]);
-        int value2 = Integer.parseInt(splitLine[2]);
-        int value3 = Integer.parseInt(splitLine[0]);
-        switch(value0)
+        switch(word.get(0))
         {
             case 8:
-                DADDI(registers, value2, value1, value3);
+                DADDI(registers, word.get(2), word.get(1), word.get(3));
                 break;
             case 32:
-                DADD(registers, value2, value1, value3);
+                DADD(registers, word.get(2), word.get(1), word.get(3));
                 break;
             case 34:
-                DSUB(registers, value2, value1, value3);
+                DSUB(registers, word.get(2), word.get(1), word.get(3));
                 break;
             case 12:
-                DMUL(registers, value2, value1, value3);
+                DMUL(registers, word.get(2), word.get(1), word.get(3));
                 break;
             case 14:
-                DDIV(registers, value2, value1, value3);
+                DDIV(registers, word.get(2), word.get(1), word.get(3));
                 break;
             case 4:
-                BEQZ(registers, value1, value3);
+                BEQZ(registers, word.get(1), word.get(3));
                 break;
             case 5:
-                BNEZ(registers, value1, value3);
+                BNEZ(registers, word.get(1), word.get(3));
                 break;
             case 3:
-                JAL(registers, value3);
+                JAL(registers, word.get(3));
                 break;
             case 2:
-                JR(registers, value1);
+                JR(registers, word.get(1));
                 break;
             case 35:
                 //Llama a la clase LOAD
@@ -95,7 +92,7 @@ public class Instructions {
         registers[Codes.PC] = registers[srcRegister];
     }
 
-    public void FIN() {
-        //mata todo
+    public int FIN() {
+        return Codes.END;
     }
 }

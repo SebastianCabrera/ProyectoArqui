@@ -11,7 +11,7 @@ public class Registers {
         this.registers = new Vector<>(Codes.TOTAL_REGISTERS);
 
         for(int i = 0; i < Codes.TOTAL_REGISTERS; i++){
-            this.registers.set(i, 0);
+            this.registers.add(i, Codes.EMPTY_REGISTER);
         }
     }
 

@@ -11,6 +11,8 @@ public class DataCache extends Cache {
 
     public DataCache(int totalBlocks){
         this.cache = new Vector<>(totalBlocks);
+        this.tags = new Vector<>(totalBlocks);
+        this.states = new Vector<>(totalBlocks);
 
         // Inicializa la caché
         for(int i = 0; i < totalBlocks; i++){
@@ -20,11 +22,11 @@ public class DataCache extends Cache {
 
             // Inserta palabras vacías de 1 posición para datos
             for(int j = 0; j < 4; j++){
-                block.add(Codes.EMPTY);
+                block.add(Codes.EMPTY_CACHE);
             }
 
             // Inicializa etiquetas y estados
-            this.tags.add(Codes.EMPTY);
+            this.tags.add(Codes.EMPTY_CACHE);
             this.states.add(Codes.I);
 
             this.cache.add(block);

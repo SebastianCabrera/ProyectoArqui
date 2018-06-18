@@ -1,3 +1,4 @@
+import Abstracts.Core;
 import Cores.DualCore;
 import Cores.SingleCore;
 import Enums.Codes;
@@ -5,14 +6,19 @@ import Structures.InstructionMemory;
 
 import java.io.*;
 import java.util.Vector;
+import java.util.concurrent.CyclicBarrier;
 
 public class Program {
-    DualCore core0;
-    SingleCore core1;
-    InstructionMemory memory;
+    private DualCore core0;
+    private SingleCore core1;
+    private InstructionMemory memory;
+    private int clock;
+    private final CyclicBarrier barrier;
 
     public Program(){
-        memory = new InstructionMemory();
+        this.memory = new InstructionMemory();
+        this.clock = 0;
+        this.barrier = new CyclicBarrier(Codes.TOTAL_CORES);
     }
 
     public void loadInstructions(String[] files){
@@ -32,7 +38,6 @@ public class Program {
                         line = reader.readLine();
 
                         while (line != null) {
-                            //Guardar una por una en insMem (FALTA)
 
                             String[] codedLine = line.split(" ");
                             Vector<Integer> decodedLine = new Vector<>(Codes.TOTAL_INSTRUCTION_PARAMETERS);
@@ -64,5 +69,20 @@ public class Program {
                 System.out.println();
             }
         }
+    }
+
+    public void runProgram(){
+
+
+        core0 = new DualCore(this.memory, this.barrier);
+        core1 = new SingleCore(this.memory, this.barrier);
+
+
+        Thread thread0 = new Thread(core0);
+        Thread thread1 = new Thread(core0);
+        Thread thread2 = new Thread(core1);
+        thread0.start();
+        thread1.start();
+        thread2.start();
     }
 }

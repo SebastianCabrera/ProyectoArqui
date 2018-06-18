@@ -12,6 +12,8 @@ public class InstructionCache extends Cache{
     public InstructionCache(int totalBlocks) {
 
         this.cache = new Vector<>(totalBlocks);
+        this.tags = new Vector<>(totalBlocks);
+        this.states = new Vector<>(totalBlocks);
 
         // Inicializa la caché
         for(int i = 0; i < totalBlocks; i++){
@@ -24,14 +26,14 @@ public class InstructionCache extends Cache{
                 Vector<Integer> word = new Vector<>(Codes.INSTRUCTIONS_WORD_SIZE);
 
                 for(int k = 0; k < Codes.INSTRUCTIONS_WORD_SIZE; k++){
-                    word.add(Codes.EMPTY);
+                    word.add(Codes.EMPTY_CACHE);
                 }
 
-                block.set(j, word);
+                block.add(j, word);
             }
 
             // Inicializa etiquetas y estados
-            this.tags.add(Codes.EMPTY);
+            this.tags.add(Codes.EMPTY_CACHE);
             this.states.add(Codes.I);
 
             this.cache.add(block);

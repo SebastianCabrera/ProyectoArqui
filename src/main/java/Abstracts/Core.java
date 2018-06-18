@@ -8,57 +8,44 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 
 /**
  * Created by J.A Rodríguez on 14/06/2018.
  */
-public abstract class Core {
-    DataMemory dataMemory;
-    InstructionMemory instructionMemory;
+public abstract class Core implements Runnable{
+    protected DataMemory dataMemory;
+    protected InstructionMemory instructionMemory;
 
-    DataCache dataCache;
-    InstructionCache instructionCache;
+    protected DataCache dataCache;
+    protected InstructionCache instructionCache;
 
-    Registers registers;
+    protected Registers registers;
 
-    protected Core(int cacheSize){
+    protected int clock;
+
+    protected CyclicBarrier barrier;
+
+    protected Core(int cacheSize, CyclicBarrier programBarrier){
+        this.barrier = programBarrier;
+
         this.dataMemory = new DataMemory();
-        this.instructionMemory = new InstructionMemory();
 
         this.dataCache = new DataCache(cacheSize);
         this.instructionCache = new InstructionCache(cacheSize);
 
         this.registers = new Registers();
+
+        this.clock = 0;
     }
 
-    //Recibe la direccion del archivo con los hilillos
-    static InstructionMemory readHilillos(String hilillosDirection) {
-
-        InstructionMemory insMem = new InstructionMemory();
-        /*File encyptFile = new File(hilillosDirection);
-        if (encyptFile.isFile()) {
-            String line;
-            BufferedReader in;
-
-            try {
-                in = new BufferedReader(new FileReader(encyptFile));
-                try {
-                    line = in.readLine();
-
-                    while (line != null) {
-                        //Guardar una por una en insMem (FALTA)
-
-                        line = in.readLine();
-                    }
-                } catch (IOException l) {
-                    l.printStackTrace();
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-
-        }*/
-
-        return insMem;
+    @Override
+    public void run(){
+        try {
+            this.barrier.await();
+        }catch (InterruptedException |BrokenBarrierException e){
+            System.err.println(e.toString());
+        }
     }
 }

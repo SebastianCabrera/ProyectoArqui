@@ -3,18 +3,11 @@ package GraphicInterface;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
-import javax.swing.ButtonGroup;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
-import javax.swing.JRadioButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import javax.swing.JButton;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
@@ -28,6 +21,16 @@ public class SettingsWindow extends JFrame {
      * Launch the application.
      */
     public static void main(String[] args) {
+        try {
+
+            // Para que las ventanas tengan el aspecto del sistema operativo y no el default de Java
+            javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
+
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+            JOptionPane.showMessageDialog(null, "Failed to set the program appearance to the\n system default.",
+                    "Appearance error", JOptionPane.ERROR_MESSAGE);
+        }
+
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {

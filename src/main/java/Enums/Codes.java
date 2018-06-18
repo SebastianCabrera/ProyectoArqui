@@ -10,9 +10,12 @@ public enum Codes {
     public static final int DATA_MEM_END = 380;
     public static final int INSTRUCTION_MEM_BEGIN = 384;
     public static final int INSTRUCTION_MEM_END = 10240;
+    public static final int END = -1;
 
     // Códigos
-    public static final int EMPTY = -1;
+    public static final int EMPTY_CACHE = 0;
+    public static final int EMPTY_MEMORY = 0;
+    public static final int EMPTY_REGISTER = 0;
 
     // Etiquetas
     public static final char I = 'I';
@@ -31,4 +34,5 @@ public enum Codes {
     public static final int INSTRUCTIONS_WORD_BYTES = 16;
     public static final int INSTRUCTIONS_WORD_SIZE = 4;
     public static final int TOTAL_INSTRUCTION_PARAMETERS = 4;
+    public static final int TOTAL_CORES = 3;
 }
