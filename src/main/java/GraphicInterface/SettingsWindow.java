@@ -6,16 +6,20 @@ import java.awt.EventQueue;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
 
 public class SettingsWindow extends JFrame {
 
     private JPanel settingsPane;
     private JTextField textFieldQuantum;
     private JTextField textFieldCycles;
+    private JFileChooser fileChooser;
 
     /**
      * Launch the application.
@@ -78,6 +82,14 @@ public class SettingsWindow extends JFrame {
             }
 
         });
+
+        fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File(".\\hilillos"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Text files (.txt)", "txt"));
+        fileChooser.setAcceptAllFileFilterUsed(false);
+        fileChooser.setApproveButtonText("Run!");
+        fileChooser.setMultiSelectionEnabled(true);
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
         textFieldCycles.setEnabled(false);
         textFieldCycles.setToolTipText("");
@@ -144,21 +156,40 @@ public class SettingsWindow extends JFrame {
         panelGeneral.add(textFieldQuantum);
         textFieldQuantum.setColumns(10);
 
-        JButton btnRun = new JButton("Run!");
-        btnRun.addActionListener(new ActionListener() {
+        JButton btnReady = new JButton("Ready!");
+        btnReady.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
 
                 if(textFieldQuantum.getText().isEmpty() || (textFieldCycles.isEnabled() && textFieldCycles.getText().isEmpty())){
                     JOptionPane.showMessageDialog(null, "Please, fill the text fields to continue.", "Empty text field error", JOptionPane.ERROR_MESSAGE);
+                }else{
+                    dispose();
+                    if(fileChooser.showOpenDialog(null) != JFileChooser.CANCEL_OPTION){
+                        File[] files = fileChooser.getSelectedFiles();
+                        String selectedFiles = "Selected files:\n";
+                        for(int i = 0; i < files.length; i++){
+                            selectedFiles += files[i].getName() + "\n";
+                        }
+                        selectedFiles += "(Testing message)";
+
+                        JOptionPane.showMessageDialog(null, selectedFiles, "Selected files", JOptionPane.INFORMATION_MESSAGE);
+                    }
                 }
 
             }
         });
-        btnRun.setBounds(152, 185, 89, 23);
-        settingsPane.add(btnRun);
+        btnReady.setBounds(152, 185, 89, 23);
+        settingsPane.add(btnReady);
 
         JButton btnExit = new JButton("Exit");
         btnExit.setBounds(251, 185, 89, 23);
+
+        btnExit.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                dispose();
+            }
+        });
+
         settingsPane.add(btnExit);
     }
 }
