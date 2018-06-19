@@ -1,13 +1,8 @@
 package Abstracts;
 
-import Enums.Codes;
 import Structures.*;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.FileNotFoundException;
+import java.util.Vector;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
@@ -15,6 +10,8 @@ import java.util.concurrent.CyclicBarrier;
  * Created by J.A Rodríguez on 14/06/2018.
  */
 public abstract class Core implements Runnable{
+    protected Vector<Registers> contextsList;
+
     protected DataMemory dataMemory;
     protected InstructionMemory instructionMemory;
 
@@ -27,10 +24,15 @@ public abstract class Core implements Runnable{
 
     protected CyclicBarrier barrier;
 
-    protected Core(int cacheSize, CyclicBarrier programBarrier){
+    protected Core coreRefence;
+
+    protected Core(int cacheSize, InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier){
+        this.contextsList = new Vector<>();
+
         this.barrier = programBarrier;
 
-        this.dataMemory = new DataMemory();
+        this.instructionMemory = insMem;
+        this.dataMemory = dataMem;
 
         this.dataCache = new DataCache(cacheSize);
         this.instructionCache = new InstructionCache(cacheSize);
@@ -40,6 +42,10 @@ public abstract class Core implements Runnable{
         this.clock = 0;
     }
 
+    public void setCoreRefence(Core refence){
+        this.coreRefence = refence;
+    }
+
     @Override
     public void run(){
         try {
@@ -47,5 +53,17 @@ public abstract class Core implements Runnable{
         }catch (InterruptedException |BrokenBarrierException e){
             System.err.println(e.toString());
         }
+    }
+
+    public int getClock(){
+        return this.clock;
+    }
+
+    public DataCache getDataCache(){
+        return this.dataCache;
+    }
+
+    public InstructionCache getInstructionCache(){
+        return this.instructionCache;
     }
 }
