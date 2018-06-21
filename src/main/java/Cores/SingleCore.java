@@ -5,14 +5,15 @@ import Enums.Codes;
 import Structures.DataMemory;
 import Structures.InstructionMemory;
 
+import java.util.Vector;
 import java.util.concurrent.CyclicBarrier;
 
 /**
  * Created by J.A Rodríguez on 16/06/2018.
  */
 public class SingleCore extends Core {
-    public SingleCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier){
-        super(Codes.BLOCKS_IN_CACHE_1, insMem, dataMem, programBarrier);
+    public SingleCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> threadStates){
+        super(Codes.BLOCKS_IN_CACHE_1, insMem, dataMem, programBarrier, threadStates);
     }
 
     @Override

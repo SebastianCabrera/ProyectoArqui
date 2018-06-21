@@ -15,12 +15,18 @@ public class Program {
     private DataMemory dataMemory;
     private int clock;
     private final CyclicBarrier barrier;
+    private Vector<Integer> threadsStates;
 
     public Program(){
         this.instructionMemory = new InstructionMemory();
         this.dataMemory = new DataMemory();
         this.clock = 0;
         this.barrier = new CyclicBarrier(Codes.TOTAL_CORES);
+
+        this.threadsStates = new Vector<>(3);
+        for(int i = 0; i < 3; i++){
+            this.threadsStates.add(Codes.NONE);
+        }
     }
 
     public void loadInstructions(String[] files){
@@ -76,15 +82,15 @@ public class Program {
     public void runProgram(){
 
 
-        core0 = new DualCore(this.instructionMemory, this.dataMemory, this.barrier);
-        core1 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier);
+        core0 = new DualCore(this.instructionMemory, this.dataMemory, this.barrier, this.threadsStates);
+        core1 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier, this.threadsStates);
 
         core0.setCoreRefence(core1);
         core1.setCoreRefence(core0);
 
-        Thread thread0 = new Thread(core0);
-        Thread thread1 = new Thread(core0);
-        Thread thread2 = new Thread(core1);
+        Thread thread0 = new Thread(core0, Codes.THREAD_0);
+        Thread thread1 = new Thread(core0, Codes.THREAD_1);
+        Thread thread2 = new Thread(core1, Codes.THREAD_2);
         thread0.start();
         thread1.start();
         thread2.start();

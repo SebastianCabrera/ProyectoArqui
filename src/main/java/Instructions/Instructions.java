@@ -4,6 +4,16 @@ import Enums.Codes;
 
 import java.util.Vector;
 
+// IR: Instruccion Actual
+
+// Doble barrera: por el doble hilillo, cuando se espera que un hilo acomode (contexto, subir y demas), los otros no
+// estan haciendo nada. El SO se encarga de esto.
+
+// En tal ciclo todos hicieron lo que les tocara. Antes de comenzar el otro (segunda barrera): si a alguien
+// se le acaba el quantum se sube el siguiente, si da fallo se detiene, y una vez se hizo toda esa revision
+// (de parte de solo un hilo o cada uno) en la primera barrera, luego de la segunda ya ejecutan el ciclo normal.
+// Seria en medio de ambas barreras. No es obligatorio.
+
 public class Instructions {
     public void decode(int[] registers, Vector<Integer> word)
     {

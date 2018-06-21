@@ -9,7 +9,7 @@ import java.util.concurrent.CyclicBarrier;
 /**
  * Created by J.A Rodríguez on 14/06/2018.
  */
-public abstract class Core implements Runnable{
+public abstract class Core extends Thread{
     protected Vector<Registers> contextsList;
 
     protected DataMemory dataMemory;
@@ -26,7 +26,9 @@ public abstract class Core implements Runnable{
 
     protected Core coreRefence;
 
-    protected Core(int cacheSize, InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier){
+    protected Vector<Integer> states;
+
+    protected Core(int cacheSize, InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> threadStates){
         this.contextsList = new Vector<>();
 
         this.barrier = programBarrier;
@@ -40,6 +42,8 @@ public abstract class Core implements Runnable{
         this.registers = new Registers();
 
         this.clock = 0;
+
+        this.states = threadStates;
     }
 
     public void setCoreRefence(Core refence){

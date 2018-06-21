@@ -11,6 +11,15 @@ public enum Codes {
     public static final int INSTRUCTION_MEM_BEGIN = 384;
     public static final int INSTRUCTION_MEM_END = 10240;
     public static final int END = -1;
+    public static final String THREAD_0 = "Thread0";
+    public static final String THREAD_1 = "Thread1";
+    public static final String THREAD_2 = "Thread2";
+
+    // Thread States
+    public static final int NONE = -1;
+    public static final int RUNNING = 0;
+    public static final int STOPPED = 1;
+    public static final int WAITING = 2;
 
     // Códigos
     public static final int EMPTY_CACHE = 0;
