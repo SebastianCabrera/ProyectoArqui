@@ -34,7 +34,6 @@ public abstract class InstructionsResources {
     }
 
     protected int restart(){
-        // Retroceder PC
         for(int i = 0; i < this.reservedStructures.size(); i++){
             this.reservedStructures.get(i).unlock();
         }

@@ -44,7 +44,7 @@ public class Load extends InstructionsResources{
                 if(!(memory.getMemoryBusLock().tryLock())){
                     return this.restart();
                 }
-                // Si sigue aquí, es porque no estaba reservada y se bloquea
+                // Si sigue aquí, es porque no estaba reservada y se bloque'o
 
                 // Guardar bloque de la caché en memoria.
                 memory.setBlock(memDirection, currentCore.getDataCache().getBlock(position));
@@ -101,6 +101,7 @@ public class Load extends InstructionsResources{
         // Cargar bloque en caché propia (40 ciclos, controlar con barrera).
         currentCore.getDataCache().setBlock(position, memory.getBlock(memDirection));
         currentCore.getDataCache().setSate(position, Codes.C);
+        currentCore.getDataCache().setTag(position, block);
 
         // Liberar
         currentCore.getOtherCoreReference().getDataCache().getPositionLock(position).unlock();

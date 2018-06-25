@@ -26,7 +26,7 @@ public class DataMemory extends Memory{
         Vector<Integer> block = new Vector<>(Codes.CACHE_BLOCK_SIZE);
 
         for(int i = 0; i < Codes.CACHE_BLOCK_SIZE; i++){
-            block.set(i, this.memory.get(this.getRealDirection(i, direction)));
+            block.add(this.memory.get(this.getRealDirection(i, direction)));
         }
 
         return block;
@@ -34,5 +34,9 @@ public class DataMemory extends Memory{
 
     public Lock getMemoryBusLock(){
         return this.memoryBus;
+    }
+
+    private int getRealDirection(int index, int direction){
+        return (direction / Codes.DATA_WORD_BYTES) + index;
     }
 }

@@ -1,4 +1,9 @@
+import Abstracts.Memory;
+import Cores.SingleCore;
 import GraphicInterface.SettingsWindow;
+import Instructions.Load;
+import Structures.DataMemory;
+import Structures.InstructionMemory;
 
 import javax.swing.*;
 import java.awt.*;

@@ -49,4 +49,8 @@ public class InstructionMemory extends Memory {
             this.memory.set((i + position), word.get(i));
         }
     }
+
+    private int getRealDirection(int index, int direction){
+        return (index / Codes.INSTRUCTIONS_WORD_BYTES) + direction;
+    }
 }

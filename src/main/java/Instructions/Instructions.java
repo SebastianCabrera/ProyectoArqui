@@ -57,7 +57,7 @@ public class Instructions {
                 // if(value != -1){
                 //      registers[destino] = value;
                 //}else{
-                //      retroceder PC
+                //      registers[Codes.PC]--;
                 //}
                 break;
             case 43:
