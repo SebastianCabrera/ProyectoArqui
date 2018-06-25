@@ -4,11 +4,16 @@ import Abstracts.Memory;
 import Enums.Codes;
 
 import java.util.Vector;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class DataMemory extends Memory{
 
+    private Lock memoryBus;
+
     public DataMemory() {
         super(Codes.DATA_MEM_CAPACITY);
+        this.memoryBus = new ReentrantLock();
     }
 
     public void setBlock(int direction, Vector<Integer> block){
@@ -25,5 +30,9 @@ public class DataMemory extends Memory{
         }
 
         return block;
+    }
+
+    public Lock getMemoryBusLock(){
+        return this.memoryBus;
     }
 }

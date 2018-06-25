@@ -4,15 +4,21 @@ import Abstracts.Cache;
 import Enums.Codes;
 
 import java.util.Vector;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class DataCache extends Cache {
 
     private Vector<Vector<Integer>> cache;
+    private Vector<Lock> locks;
+    private Lock cacheBus;
 
     public DataCache(int totalBlocks){
         this.cache = new Vector<>(totalBlocks);
         this.tags = new Vector<>(totalBlocks);
         this.states = new Vector<>(totalBlocks);
+        this.locks = new Vector<>(totalBlocks);
+        this.cacheBus = new ReentrantLock();
 
         // Inicializa la caché
         for(int i = 0; i < totalBlocks; i++){
@@ -25,9 +31,10 @@ public class DataCache extends Cache {
                 block.add(Codes.EMPTY_CACHE);
             }
 
-            // Inicializa etiquetas y estados
+            // Inicializa etiquetas, estados y reservas vacías
             this.tags.add(Codes.EMPTY_CACHE);
             this.states.add(Codes.I);
+            this.locks.add(new ReentrantLock());
 
             this.cache.add(block);
         }
@@ -51,5 +58,13 @@ public class DataCache extends Cache {
 
     public Vector<Vector<Integer>> getCache(){
         return this.cache;
+    }
+
+    public Lock getPositionLock(int position){
+        return this.locks.get(position);
+    }
+
+    public Lock getCacheBusLock(){
+        return this.cacheBus;
     }
 }

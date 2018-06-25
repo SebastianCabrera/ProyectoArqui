@@ -14,7 +14,7 @@ public abstract class Cache {
         this.states.set(numBlock, state);
     }
 
-    public int getState(int numBlock){
+    public char getState(int numBlock){
         return this.states.get(numBlock);
     }
 

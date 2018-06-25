@@ -13,8 +13,9 @@ import java.util.concurrent.CyclicBarrier;
  * Created by J.A Rodríguez on 16/06/2018.
  */
 public class DualCore extends Core {
-    public DualCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> threadStates){
-        super(Codes.BLOCKS_IN_CACHE_0, insMem, dataMem, programBarrier, threadStates);
+    public DualCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier){
+        super(Codes.BLOCKS_IN_CACHE_0, insMem, dataMem, programBarrier);
+        this.coreId = Codes.CORE_0;
     }
 
     @Override

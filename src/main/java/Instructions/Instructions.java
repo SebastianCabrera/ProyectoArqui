@@ -15,10 +15,16 @@ import java.util.Vector;
 // Seria en medio de ambas barreras. No es obligatorio.
 
 public class Instructions {
+
+    Load load;
+
+    public Instructions(){
+        load = new Load();
+    }
+
     public void decode(int[] registers, Vector<Integer> word)
     {
-        switch(word.get(0))
-        {
+        switch(word.get(0)) {
             case 8:
                 DADDI(registers, word.get(2), word.get(1), word.get(3));
                 break;
@@ -47,7 +53,12 @@ public class Instructions {
                 JR(registers, word.get(1));
                 break;
             case 35:
-                //Llama a la clase LOAD
+                //int value = load.LW(parámetros);
+                // if(value != -1){
+                //      registers[destino] = value;
+                //}else{
+                //      retroceder PC
+                //}
                 break;
             case 43:
                 //Llama a la clase STORE

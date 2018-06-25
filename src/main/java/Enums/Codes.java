@@ -14,12 +14,9 @@ public enum Codes {
     public static final String THREAD_0 = "Thread0";
     public static final String THREAD_1 = "Thread1";
     public static final String THREAD_2 = "Thread2";
-
-    // Thread States
-    public static final int NONE = -1;
-    public static final int RUNNING = 0;
-    public static final int STOPPED = 1;
-    public static final int WAITING = 2;
+    public static final int CORE_0 = 0;
+    public static final int CORE_1 = 1;
+    public static final int FAILURE = -1;
 
     // Códigos
     public static final int EMPTY_CACHE = 0;
@@ -44,4 +41,5 @@ public enum Codes {
     public static final int INSTRUCTIONS_WORD_SIZE = 4;
     public static final int TOTAL_INSTRUCTION_PARAMETERS = 4;
     public static final int TOTAL_CORES = 3;
+    public static final int DATA_BLOCK_BYTES = 16;
 }

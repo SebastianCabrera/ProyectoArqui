@@ -26,9 +26,9 @@ public abstract class Core extends Thread{
 
     protected Core coreRefence;
 
-    protected Vector<Integer> states;
+    protected int coreId;
 
-    protected Core(int cacheSize, InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> threadStates){
+    protected Core(int cacheSize, InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier){
         this.contextsList = new Vector<>();
 
         this.barrier = programBarrier;
@@ -42,8 +42,6 @@ public abstract class Core extends Thread{
         this.registers = new Registers();
 
         this.clock = 0;
-
-        this.states = threadStates;
     }
 
     public void setCoreRefence(Core refence){
@@ -69,5 +67,13 @@ public abstract class Core extends Thread{
 
     public InstructionCache getInstructionCache(){
         return this.instructionCache;
+    }
+
+    public int getCoreId(){
+        return this.coreId;
+    }
+
+    public Core getOtherCoreReference(){
+        return this.coreRefence;
     }
 }
