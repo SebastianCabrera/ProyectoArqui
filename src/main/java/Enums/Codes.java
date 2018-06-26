@@ -17,6 +17,7 @@ public enum Codes {
     public static final int CORE_0 = 0;
     public static final int CORE_1 = 1;
     public static final int FAILURE = -1;
+    public static final int SUCCESS = 0;
 
     // Códigos
     public static final int EMPTY_CACHE = 0;

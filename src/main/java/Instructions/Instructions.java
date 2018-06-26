@@ -54,14 +54,17 @@ public class Instructions {
                 break;
             case 35:
                 //int value = load.LW(parámetros);
-                // if(value != -1){
+                // if(value != Codes.FAILURE){
                 //      registers[destino] = value;
                 //}else{
                 //      registers[Codes.PC]--;
                 //}
                 break;
             case 43:
-                //Llama a la clase STORE
+                //int value = store.SW(parametros);
+                // if(value == Codes.FAILURE){
+                //      registers[Codes.PC]--;
+                // }
                 break;
             case 63:
                 FIN();
