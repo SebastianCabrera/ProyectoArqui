@@ -17,16 +17,20 @@ public class DataMemory extends Memory{
     }
 
     public void setBlock(int direction, Vector<Integer> block){
+        int blockBeginDir = this.getBlockBegin(direction);
+
         for(int i = 0; i < Codes.CACHE_BLOCK_SIZE; i++){
-            this.memory.set(this.getRealDirection(i, direction), block.get(i));
+            this.memory.set(this.getRealDirection(i, blockBeginDir), block.get(i));
         }
     }
 
     public Vector<Integer> getBlock(int direction){
         Vector<Integer> block = new Vector<>(Codes.CACHE_BLOCK_SIZE);
 
+        int blockBeginDir = this.getBlockBegin(direction);
+
         for(int i = 0; i < Codes.CACHE_BLOCK_SIZE; i++){
-            block.add(this.memory.get(this.getRealDirection(i, direction)));
+            block.add(this.memory.get(this.getRealDirection(i, blockBeginDir)));
         }
 
         return block;

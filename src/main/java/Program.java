@@ -6,6 +6,7 @@ import Instructions.Load;
 import Instructions.Store;
 import Structures.DataMemory;
 import Structures.InstructionMemory;
+import Structures.Registers;
 
 import java.io.*;
 import java.util.Vector;
@@ -135,8 +136,13 @@ public class Program {
 
         System.out.println("Registers");
 
-        for(int i = 0; i < 32; i++){
-            System.out.println("R" + i + ": " + core1.getRegisters().getRegister(i) + " ");
+        Vector<Registers> contexts = core1.getContextsList();
+
+        for(int j = 0; j < contexts.size(); j++) {
+            System.out.println("\nHilillo " + j);
+            for (int i = 0; i < 32; i++) {
+                System.out.println("R" + i + ": " + contexts.get(j).getRegister(i) + " ");
+            }
         }
     }
 }

@@ -32,7 +32,7 @@ public class DataCache extends Cache {
             }
 
             // Inicializa etiquetas, estados y reservas vacías
-            this.tags.add(Codes.EMPTY_CACHE);
+            this.tags.add(Codes.EMPTY_BLOCK);
             this.states.add(Codes.I);
             this.locks.add(new ReentrantLock());
 

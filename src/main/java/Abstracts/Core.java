@@ -85,4 +85,12 @@ public abstract class Core extends Thread{
     public Registers getRegisters(){
         return this.registers;
     }
+
+    public void addContext(Registers registers){
+        this.contextsList.add(registers);
+    }
+
+    public Vector<Registers> getContextsList(){
+        return this.contextsList;
+    }
 }

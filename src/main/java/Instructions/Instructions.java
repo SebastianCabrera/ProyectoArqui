@@ -61,7 +61,7 @@ public class Instructions {
                 JR(registers, word.get(1));
                 break;
             case 35:
-                value = load.LW((word.get(3) + word.get(1)), memory, currentCore);
+                value = load.LW((word.get(3) + registers.getRegister(word.get(1))), memory, currentCore);
                 if(value != Codes.FAILURE){
                     registers.setRegister(word.get(2), value);
                 }else{
@@ -69,18 +69,25 @@ public class Instructions {
                 }
                 break;
             case 43:
-                value = store.SW((word.get(3) + word.get(1)), memory, currentCore, word.get(2));
+                value = store.SW((word.get(3) + registers.getRegister(word.get(1))), memory, currentCore, registers.getRegister(word.get(2)));
                 if(value == Codes.FAILURE){
                     registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) - 4);
                 }
                 break;
             case 63:
                 FIN();
+                // Esto es temporal. Se debe agregar en otra parte
+                Registers context = new Registers(registers);
+
+                currentCore.addContext(context);
+                for(int i = 0; i < 32; i++){
+                    registers.setRegister(i, Codes.EMPTY_REGISTER);
+                }
                 //exit(0);
                 break;
         }
 
-        /*System.out.println("Registers");
+        System.out.println("Registers");
 
         int index = 0;
         for(int i = 0; i < 8; i++){
@@ -89,7 +96,7 @@ public class Instructions {
                 index++;
             }
             System.out.println();
-        }*/
+        }
 
         registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) + 4);
     }

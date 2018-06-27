@@ -47,7 +47,7 @@ public class Load extends InstructionsResources{
                 // Si sigue aquí, es porque no estaba reservada y se bloque'o
 
                 // Guardar bloque de la caché en memoria.
-                memory.setBlock(memDirection, currentCore.getDataCache().getBlock(position));
+                memory.setBlock(tag * 16, currentCore.getDataCache().getBlock(position));
                 currentCore.getDataCache().setSate(position, Codes.I);
 
                 memory.getMemoryBusLock().unlock();

@@ -56,12 +56,4 @@ public class InstructionMemory extends Memory {
     private int getWordDirection(int index, int direction){
         return direction + index;
     }
-
-    private int getBlockBegin(int direction){
-        if(direction % 16 != 0){
-            return direction - ((direction % 16) * (direction / 16));
-        }else{
-            return direction;
-        }
-    }
 }

@@ -33,7 +33,7 @@ public class SingleCore extends Core {
         int direction = 0;
         int position = 0;
 
-        do {
+        while(true) {
             //System.out.print("INST ");
             // Crear método en memoria para cargar palabra, no así.
             direction = this.registers.getRegister(Codes.PC) + 384;
@@ -47,19 +47,17 @@ public class SingleCore extends Core {
             }
 
             Vector<Integer> instruction = this.instructionCache.getWord(position, word);
-            //System.out.println(instruction);
+
+            // Freno por ahora
+            if(instruction.toString().equals("[1, 1, 1, 1]")){
+                break;
+            }
+
+            System.out.println(instruction);
             this.instructions.decode(this.registers, instruction, this.dataMemory, this);
-            //System.out.println("Block #" + block);
-            //System.out.println("Word #" + word);
-            /*if((word + 1) % 4 == 0){
-                word = 0;
-                direction += 16;
-                block++;
-            }else{
-                word++;
-            }*/
+
             System.out.println(block);
-        }while (block != 5);
+        }
 
         try {
             barrier.await();
