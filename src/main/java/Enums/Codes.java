@@ -21,8 +21,9 @@ public enum Codes {
 
     // Códigos
     public static final int EMPTY_CACHE = 0;
-    public static final int EMPTY_MEMORY = 0;
+    public static final int EMPTY_MEMORY = 1;
     public static final int EMPTY_REGISTER = 0;
+    public static final int EMPTY_BLOCK = -1;
 
     // Etiquetas
     public static final char I = 'I';

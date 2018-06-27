@@ -18,7 +18,7 @@ public class InstructionMemory extends Memory {
         int index = 0;
         for(int i = 0; i < Codes.CACHE_BLOCK_SIZE; i++){
             for(int j = 0; j < Codes.INSTRUCTIONS_WORD_SIZE; j++){
-                this.memory.set(this.getRealDirection(index, direction), block.get(i).get(j));
+                this.memory.set(this.getWordDirection(index, direction), block.get(i).get(j));
                 index++;
             }
         }
@@ -27,13 +27,15 @@ public class InstructionMemory extends Memory {
     public Vector<Vector<Integer>> getBlock(int virtualDirection){
         int direction = this.getDirection(virtualDirection);
 
+        int blockBeginDir = this.getBlockBegin(direction);
+
         Vector<Vector<Integer>> block = new Vector<>(Codes.CACHE_BLOCK_SIZE);
 
         int index = 0;
         for(int i = 0; i < Codes.CACHE_BLOCK_SIZE; i++){
             block.add(new Vector<>());
             for(int j = 0; j < Codes.CACHE_BLOCK_SIZE; j++){
-                block.get(i).add(this.memory.get(this.getRealDirection(index, direction)));
+                block.get(i).add(this.memory.get(this.getWordDirection(index, blockBeginDir)));
                 index++;
             }
         }
@@ -51,7 +53,15 @@ public class InstructionMemory extends Memory {
         }
     }
 
-    private int getRealDirection(int index, int direction){
-        return (direction / 4) + index;
+    private int getWordDirection(int index, int direction){
+        return direction + index;
+    }
+
+    private int getBlockBegin(int direction){
+        if(direction % 16 != 0){
+            return direction - ((direction % 16) * (direction / 16));
+        }else{
+            return direction;
+        }
     }
 }

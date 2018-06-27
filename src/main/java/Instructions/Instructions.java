@@ -65,22 +65,22 @@ public class Instructions {
                 if(value != Codes.FAILURE){
                     registers.setRegister(word.get(2), value);
                 }else{
-                    registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) - 1);
+                    registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) - 4);
                 }
                 break;
             case 43:
                 value = store.SW((word.get(3) + word.get(1)), memory, currentCore, word.get(2));
                 if(value == Codes.FAILURE){
-                    registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) - 1);
+                    registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) - 4);
                 }
                 break;
             case 63:
                 FIN();
-                exit(0);
+                //exit(0);
                 break;
         }
 
-        System.out.println("Registers");
+        /*System.out.println("Registers");
 
         int index = 0;
         for(int i = 0; i < 8; i++){
@@ -89,7 +89,9 @@ public class Instructions {
                 index++;
             }
             System.out.println();
-        }
+        }*/
+
+        registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) + 4);
     }
 
 

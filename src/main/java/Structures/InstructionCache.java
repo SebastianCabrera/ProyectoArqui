@@ -33,7 +33,7 @@ public class InstructionCache extends Cache{
             }
 
             // Inicializa etiquetas y estados
-            this.tags.add(Codes.EMPTY_CACHE);
+            this.tags.add(Codes.EMPTY_BLOCK);
             this.states.add(Codes.I);
 
             this.cache.add(block);
@@ -58,5 +58,9 @@ public class InstructionCache extends Cache{
 
     public Vector<Vector<Vector<Integer>>> getCache(){
         return this.cache;
+    }
+
+    public void setTag(int position, int tag){
+        this.tags.set(position, tag);
     }
 }
