@@ -14,7 +14,7 @@ public abstract class Memory {
         this.memory = new Vector<>(size);
 
         for(int i = 0; i < size; i++){
-            memory.add(i); // dejar esta estupidez como estaba
+            memory.add(Codes.EMPTY_MEMORY); // dejar esta estupidez como estaba
         }
     }
 

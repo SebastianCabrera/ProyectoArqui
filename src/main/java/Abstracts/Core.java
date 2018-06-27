@@ -1,5 +1,6 @@
 package Abstracts;
 
+import Instructions.Instructions;
 import Structures.*;
 
 import java.util.Vector;
@@ -28,6 +29,8 @@ public abstract class Core extends Thread{
 
     protected int coreId;
 
+    protected Instructions instructions;
+
     protected Core(int cacheSize, InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier){
         this.contextsList = new Vector<>();
 
@@ -42,6 +45,8 @@ public abstract class Core extends Thread{
         this.registers = new Registers();
 
         this.clock = 0;
+
+        this.instructions = new Instructions();
     }
 
     public void setCoreRefence(Core refence){
@@ -75,5 +80,9 @@ public abstract class Core extends Thread{
 
     public Core getOtherCoreReference(){
         return this.coreRefence;
+    }
+
+    public Registers getRegisters(){
+        return this.registers;
     }
 }

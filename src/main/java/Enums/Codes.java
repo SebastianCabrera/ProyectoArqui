@@ -5,7 +5,7 @@ public enum Codes {
     ENUM;
 
     // Valores
-    public static final int PC = 33;
+    public static final int PC = 32;
     public static final int DATA_MEM_BEGIN = 0;
     public static final int DATA_MEM_END = 380;
     public static final int INSTRUCTION_MEM_BEGIN = 384;

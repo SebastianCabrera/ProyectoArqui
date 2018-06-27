@@ -31,17 +31,18 @@ public class InstructionMemory extends Memory {
 
         int index = 0;
         for(int i = 0; i < Codes.CACHE_BLOCK_SIZE; i++){
-            for(int j = 0; i < Codes.CACHE_BLOCK_SIZE; j++){
-                block.get(i).set(j, this.memory.get(this.getRealDirection(index, direction)));
+            block.add(new Vector<>());
+            for(int j = 0; j < Codes.CACHE_BLOCK_SIZE; j++){
+                block.get(i).add(this.memory.get(this.getRealDirection(index, direction)));
                 index++;
             }
         }
-
+        //System.out.println("Block: " + block);
         return block;
     }
 
     private int getDirection(int virtualDirection){
-        return virtualDirection * Codes.INSTRUCTION_MEM_BEGIN;
+        return virtualDirection - Codes.INSTRUCTION_MEM_BEGIN;
     }
 
     public void setWordData(Vector<Integer> word, int position){
@@ -51,6 +52,6 @@ public class InstructionMemory extends Memory {
     }
 
     private int getRealDirection(int index, int direction){
-        return (index / Codes.INSTRUCTIONS_WORD_BYTES) + direction;
+        return (direction / 4) + index;
     }
 }

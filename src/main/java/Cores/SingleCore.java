@@ -6,6 +6,7 @@ import Structures.DataMemory;
 import Structures.InstructionMemory;
 
 import java.util.Vector;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
 /**
@@ -20,11 +21,42 @@ public class SingleCore extends Core {
     @Override
     public void run(){
         // Testing code
-        this.clock++;
-        System.out.println("In C1");
-        System.out.println("Clock in C1:" + this.clock);
-        System.out.println("Clock in C0 from C1: " + this.coreRefence.getClock() + "\n");
+        //this.clock++;
+        //System.out.println("In C1");
+        //System.out.println("Clock in C1:" + this.clock);
+        //System.out.println("Clock in C0 from C1: " + this.coreRefence.getClock() + "\n");
 
-        super.run();
+
+        // Prueba leyendo desde memoria. Debería ser desde caché
+        int block = 0;
+        int word = 0;
+        int direction = Codes.INSTRUCTION_MEM_BEGIN;
+
+        do {
+            System.out.print("INST ");
+            // Crear método en memoria para cargar palabra, no así.
+            Vector<Integer> instruction = this.instructionMemory.getBlock(direction).get(word);
+            System.out.println(instruction);
+            this.instructions.decode(this.registers, instruction, this.dataMemory, this);
+            //System.out.println("Block #" + block);
+            //System.out.println("Word #" + word);
+            if((word + 1) % 4 == 0){
+                word = 0;
+                direction += 64;
+                block++;
+            }else{
+                word++;
+            }
+        }while (block != 5);
+
+        try {
+            barrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
+        }
+
+        //super.run();
     }
 }

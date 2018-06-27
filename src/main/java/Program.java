@@ -3,11 +3,13 @@ import Cores.DualCore;
 import Cores.SingleCore;
 import Enums.Codes;
 import Instructions.Load;
+import Instructions.Store;
 import Structures.DataMemory;
 import Structures.InstructionMemory;
 
 import java.io.*;
 import java.util.Vector;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
 public class Program {
@@ -22,7 +24,7 @@ public class Program {
         this.instructionMemory = new InstructionMemory();
         this.dataMemory = new DataMemory();
         this.clock = 0;
-        this.barrier = new CyclicBarrier(Codes.TOTAL_CORES);
+        this.barrier = new CyclicBarrier(2);
     }
 
     public void loadInstructions(String[] files){
@@ -78,15 +80,20 @@ public class Program {
         core0.setCoreRefence(core1);
         core1.setCoreRefence(core0);
 
-        /*Thread thread0 = new Thread(core0, Codes.THREAD_0);
-        Thread thread1 = new Thread(core0, Codes.THREAD_1);
+        //Thread thread0 = new Thread(core0, Codes.THREAD_0);
+        //Thread thread1 = new Thread(core0, Codes.THREAD_1);
         Thread thread2 = new Thread(core1, Codes.THREAD_2);
-        thread0.start();
-        thread1.start();
-        thread2.start();*/
+        //thread0.start();
+        //thread1.start();
+        thread2.start();
 
-        Load load = new Load();
-        System.out.println(load.LW(32,this.dataMemory, this.core1));
+        try {
+            barrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
+        }
 
         Vector<Integer> memoryContent = this.dataMemory.getMemory();
 
@@ -100,7 +107,13 @@ public class Program {
             }
         }
 
-        System.out.println("Cache");
+        //Load load = new Load();
+        //System.out.println("LOAD " + load.LW(32,this.dataMemory, this.core1));
+
+        //Store store = new Store();
+        //System.out.println("LOAD " + store.SW(32,this.dataMemory, this.core1, 12345));
+
+        //System.out.println("Cache");
 
         for(int i = 0; i < core1.getDataCache().getCache().size(); i++){
             for(int j = 0; j < core1.getDataCache().getCache().get(i).size(); j++){
@@ -118,6 +131,12 @@ public class Program {
             if(((i + 1) % 4) == 0){
                 System.out.println();
             }
+        }
+
+        System.out.println("Registers");
+
+        for(int i = 0; i < 32; i++){
+            System.out.println("R" + i + ": " + core1.getRegisters().getRegister(i) + " ");
         }
     }
 }

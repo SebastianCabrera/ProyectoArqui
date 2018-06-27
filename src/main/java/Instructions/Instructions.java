@@ -1,8 +1,13 @@
 package Instructions;
 
+import Abstracts.Core;
 import Enums.Codes;
+import Structures.DataMemory;
+import Structures.Registers;
 
 import java.util.Vector;
+
+import static java.lang.System.exit;
 
 // IR: Instruccion Actual
 
@@ -17,28 +22,31 @@ import java.util.Vector;
 public class Instructions {
 
     Load load;
+    Store store;
 
     public Instructions(){
-        load = new Load();
+        this.load = new Load();
+        this.store = new Store();
     }
 
-    public void decode(int[] registers, Vector<Integer> word)
+    public void decode(Registers registers, Vector<Integer> word, DataMemory memory, Core currentCore)
     {
+        int value;
         switch(word.get(0)) {
             case 8:
                 DADDI(registers, word.get(2), word.get(1), word.get(3));
                 break;
             case 32:
-                DADD(registers, word.get(2), word.get(1), word.get(3));
+                DADD(registers, word.get(1), word.get(2), word.get(3));
                 break;
             case 34:
-                DSUB(registers, word.get(2), word.get(1), word.get(3));
+                DSUB(registers, word.get(1), word.get(2), word.get(3));
                 break;
             case 12:
-                DMUL(registers, word.get(2), word.get(1), word.get(3));
+                DMUL(registers, word.get(1), word.get(2), word.get(3));
                 break;
             case 14:
-                DDIV(registers, word.get(2), word.get(1), word.get(3));
+                DDIV(registers, word.get(1), word.get(2), word.get(3));
                 break;
             case 4:
                 BEQZ(registers, word.get(1), word.get(3));
@@ -53,67 +61,79 @@ public class Instructions {
                 JR(registers, word.get(1));
                 break;
             case 35:
-                //int value = load.LW(parámetros);
-                // if(value != Codes.FAILURE){
-                //      registers[destino] = value;
-                //}else{
-                //      registers[Codes.PC]--;
-                //}
+                value = load.LW((word.get(3) + word.get(1)), memory, currentCore);
+                if(value != Codes.FAILURE){
+                    registers.setRegister(word.get(2), value);
+                }else{
+                    registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) - 1);
+                }
                 break;
             case 43:
-                //int value = store.SW(parametros);
-                // if(value == Codes.FAILURE){
-                //      registers[Codes.PC]--;
-                // }
+                value = store.SW((word.get(3) + word.get(1)), memory, currentCore, word.get(2));
+                if(value == Codes.FAILURE){
+                    registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) - 1);
+                }
                 break;
             case 63:
                 FIN();
+                exit(0);
                 break;
         }
-    }
 
+        System.out.println("Registers");
 
-    public void DADDI(int[] registers, int trgRegister, int srcRegister, int inm) {
-        registers[trgRegister] = registers[srcRegister] + inm;
-    }
-
-    public void DADD(int[] registers, int trgRegister, int srcRegister1, int srcRegister2) {
-        registers[trgRegister] = registers[srcRegister1] + registers[srcRegister2];
-    }
-
-    public void DSUB(int[] registers, int trgRegister, int srcRegister1, int srcRegister2) {
-        registers[trgRegister] = registers[srcRegister1] - registers[srcRegister2];
-    }
-
-    public void DMUL(int[] registers, int trgRegister, int srcRegister1, int srcRegister2) {
-        registers[trgRegister] = registers[srcRegister1] * registers[srcRegister2];
-    }
-
-    public void DDIV(int[] registers, int trgRegister, int srcRegister1, int srcRegister2) {
-        if(registers[srcRegister2] != 0) {
-            registers[trgRegister] = registers[srcRegister1] / registers[srcRegister2];
+        int index = 0;
+        for(int i = 0; i < 8; i++){
+            for(int j = 0; j < 4; j++) {
+                System.out.print(registers.getRegister(index) + " ");
+                index++;
+            }
+            System.out.println();
         }
     }
 
-    public void BEQZ(int[] registers, int srcRegister, int imn) {
-        if(registers[srcRegister] == 0){
-            registers[Codes.PC] += (4 * imn);
+
+    public void DADDI(Registers registers, int trgRegister, int srcRegister, int inm) {
+        registers.setRegister(trgRegister, registers.getRegister(srcRegister) + inm);
+    }
+
+    public void DADD(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
+        registers.setRegister(trgRegister, (registers.getRegister(srcRegister1) + registers.getRegister(srcRegister2)));
+    }
+
+    public void DSUB(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
+        registers.setRegister(trgRegister, (registers.getRegister(srcRegister1) - registers.getRegister(srcRegister2)));
+    }
+
+    public void DMUL(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
+        registers.setRegister(trgRegister, (registers.getRegister(srcRegister1) * registers.getRegister(srcRegister2)));
+    }
+
+    public void DDIV(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
+        if(registers.getRegister(srcRegister2) != 0) {
+            registers.setRegister(trgRegister, (registers.getRegister(srcRegister1) / registers.getRegister(srcRegister2)));
         }
     }
 
-    public void BNEZ(int[] registers, int srcRegister, int imn) {
-        if(registers[srcRegister] != 0){
-            registers[Codes.PC] += (4 * imn);
+    public void BEQZ(Registers registers, int srcRegister, int imn) {
+        if(registers.getRegister(srcRegister) == 0){
+            registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) + (4 * imn));
         }
     }
 
-    public void JAL(int[] registers, int imn) {
-        registers[31] = registers[Codes.PC];
-        registers[Codes.PC] += imn;
+    public void BNEZ(Registers registers, int srcRegister, int imn) {
+        if(registers.getRegister(srcRegister) != 0){
+            registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) + (4 * imn));
+        }
     }
 
-    public void JR(int[] registers, int srcRegister) {
-        registers[Codes.PC] = registers[srcRegister];
+    public void JAL(Registers registers, int imn) {
+        registers.setRegister(31, registers.getRegister(Codes.PC));
+        registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) + imn);
+    }
+
+    public void JR(Registers registers, int srcRegister) {
+        registers.setRegister(Codes.PC, registers.getRegister(srcRegister));
     }
 
     public int FIN() {
