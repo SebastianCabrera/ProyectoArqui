@@ -82,6 +82,9 @@ public class Load extends InstructionsResources{
         // Obtener estado en la otra caché
         char otherCacheState = currentCore.getOtherCoreReference().getDataCache().getState(otherCachePosition);
 
+        // Obtener etiqueta en otherCache
+        int otherCacheTag = currentCore.getDataCache().getTag(position);
+
         // Si el estado en la otra caché es M
         if(otherCacheState == Codes.M){
             // Guardar bloque en memoria
@@ -92,7 +95,7 @@ public class Load extends InstructionsResources{
             }
 
             // Si no está reservada, sigue aquí y se bloquea
-            memory.setBlock(memDirection, currentCore.getOtherCoreReference().getDataCache().getBlock(otherCachePosition));
+            memory.setBlock(otherCacheTag * 16, currentCore.getOtherCoreReference().getDataCache().getBlock(otherCachePosition));
             currentCore.getOtherCoreReference().getDataCache().setSate(otherCachePosition, Codes.I);
 
             memory.getMemoryBusLock().unlock();

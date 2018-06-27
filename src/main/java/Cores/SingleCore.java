@@ -33,30 +33,35 @@ public class SingleCore extends Core {
         int direction = 0;
         int position = 0;
 
-        while(true) {
-            //System.out.print("INST ");
-            // Crear método en memoria para cargar palabra, no así.
-            direction = this.registers.getRegister(Codes.PC) + 384;
-            block = this.calculateInstructionBlock(this.registers.getRegister(Codes.PC));
-            word = this.calculateWord(direction);
-            position = block % 4;
+        for(int i = 0; i < 6; i++) {
 
-            if(this.instructionCache.getTag(position) != block){
-                this.instructionCache.setBlock(position, this.instructionMemory.getBlock(direction));
-                this.instructionCache.setTag(position, block);
+            boolean cycle = true;
+
+            while (cycle) {
+                //System.out.print("INST ");
+                // Crear método en memoria para cargar palabra, no así.
+                direction = this.registers.getRegister(Codes.PC) + 384;
+                block = this.calculateInstructionBlock(this.registers.getRegister(Codes.PC));
+                word = this.calculateWord(direction);
+                position = block % 4;
+
+                if (this.instructionCache.getTag(position) != block) {
+                    this.instructionCache.setBlock(position, this.instructionMemory.getBlock(direction));
+                    this.instructionCache.setTag(position, block);
+                }
+
+                Vector<Integer> instruction = this.instructionCache.getWord(position, word);
+
+                // Freno por ahora
+                if (instruction.toString().equals("[63, 0, 0, 0]")) {
+                    cycle = false;
+                }
+
+                System.out.println(instruction);
+                this.instructions.decode(this.registers, instruction, this.dataMemory, this);
+
+                System.out.println(block);
             }
-
-            Vector<Integer> instruction = this.instructionCache.getWord(position, word);
-
-            // Freno por ahora
-            if(instruction.toString().equals("[1, 1, 1, 1]")){
-                break;
-            }
-
-            System.out.println(instruction);
-            this.instructions.decode(this.registers, instruction, this.dataMemory, this);
-
-            System.out.println(block);
         }
 
         try {

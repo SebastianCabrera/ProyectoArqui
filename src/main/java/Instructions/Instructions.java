@@ -137,12 +137,12 @@ public class Instructions {
     }
 
     public void JAL(Registers registers, int imn) {
-        registers.setRegister(31, registers.getRegister(Codes.PC));
+        registers.setRegister(31, registers.getRegister(Codes.PC)+4);
         registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) + imn);
     }
 
     public void JR(Registers registers, int srcRegister) {
-        registers.setRegister(Codes.PC, registers.getRegister(srcRegister));
+        registers.setRegister(Codes.PC, registers.getRegister(srcRegister) - 4);
     }
 
     public int FIN() {

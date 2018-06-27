@@ -44,7 +44,7 @@ public class Store extends InstructionsResources{
                 // Si sigue aquí, es porque no estaba reservada y se bloque'o
 
                 // Guardar bloque de la caché en memoria.
-                memory.setBlock(memDirection, currentCore.getDataCache().getBlock(position));
+                memory.setBlock(tag * 16, currentCore.getDataCache().getBlock(position));
                 currentCore.getDataCache().setSate(position, Codes.I);
 
                 memory.getMemoryBusLock().unlock();
@@ -77,6 +77,9 @@ public class Store extends InstructionsResources{
         // Obtener estado en la otra caché
         char otherCacheState = currentCore.getOtherCoreReference().getDataCache().getState(otherCachePosition);
 
+        // Obtener etiqueta en otherCache
+        int otherCacheTag = currentCore.getDataCache().getTag(position);
+
         // Si el estado en la otra caché es M
         if(otherCacheState == Codes.M) {
             // Guardar bloque en memoria
@@ -89,7 +92,7 @@ public class Store extends InstructionsResources{
             // Si no está reservada, sigue aquí ya bloqueada
 
             // Guardar bloque de la otra cache en memoria
-            memory.setBlock(memDirection, currentCore.getOtherCoreReference().getDataCache().getBlock(otherCachePosition));
+            memory.setBlock(otherCacheTag * 16, currentCore.getOtherCoreReference().getDataCache().getBlock(otherCachePosition));
             memory.getMemoryBusLock().unlock();
 
             // Invalidar posicion

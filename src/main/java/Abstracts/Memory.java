@@ -24,7 +24,7 @@ public abstract class Memory {
 
     protected int getBlockBegin(int direction){
         if(direction % 16 != 0){
-            return direction - ((direction % 16) * (direction / 16));
+            return direction - ((direction % 16));
         }else{
             return direction;
         }
