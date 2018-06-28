@@ -3,8 +3,6 @@ package GraphicInterface;
 import Control.Program;
 import Enums.Codes;
 
-import java.awt.EventQueue;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;

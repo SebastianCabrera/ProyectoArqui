@@ -26,7 +26,7 @@ public abstract class Core extends Thread{
 
     protected CyclicBarrier barrier;
 
-    protected Core coreRefence;
+    protected Core coreReference;
 
     protected int coreId;
 
@@ -68,8 +68,8 @@ public abstract class Core extends Thread{
         this.results = res;
     }
 
-    public void setCoreRefence(Core refence){
-        this.coreRefence = refence;
+    public void setCoreReference(Core reference){
+        this.coreReference = reference;
     }
 
     @Override
@@ -98,7 +98,7 @@ public abstract class Core extends Thread{
     }
 
     public Core getOtherCoreReference(){
-        return this.coreRefence;
+        return this.coreReference;
     }
 
     public Registers getRegisters(){

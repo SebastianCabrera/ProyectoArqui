@@ -22,8 +22,6 @@ public class SingleCore extends Core {
 
     @Override
     public void run(){
-
-        // Prueba leyendo desde memoria. Debería ser desde caché
         int block = 0;
         int word = 0;
         int direction = 0;

@@ -21,24 +21,18 @@ public class DualCore extends Core {
 
     @Override
     public void run(){
-        // Testing code
-        /*this.clock++;
-        System.out.println("In C0");
-        System.out.println("Clock in C0:" + this.clock);
-        System.out.println("Clock in C1 from C0: " + this.coreRefence.getClock() + "\n");*/
 
         // Averiguar cual thread soy
-        if(this.getName().equals(Codes.THREAD_0)){ // comprueba que el hilo sea el 0
+        if(this.getName().equals(Codes.THREAD_0)){
             do{
-                Vector<Integer> instruction; // vector de enteros con instruccion
+                Vector<Integer> instruction;
 
 
 
             }while(true);
         }
 
-        super.run(); // llama a super para que haga run
-    } // llave que cierra el metodo run
-} // llave que cierra la clase
+        super.run();
+    }
+}
 
-// fin de la clase

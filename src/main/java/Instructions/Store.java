@@ -45,7 +45,7 @@ public class Store extends InstructionsResources{
 
                 // Guardar bloque de la caché en memoria.
                 memory.setBlock(tag * 16, currentCore.getDataCache().getBlock(position));
-                currentCore.getDataCache().setSate(position, Codes.I);
+                currentCore.getDataCache().setState(position, Codes.I);
 
                 memory.getMemoryBusLock().unlock();
             }
@@ -96,12 +96,12 @@ public class Store extends InstructionsResources{
             memory.getMemoryBusLock().unlock();
 
             // Invalidar posicion
-            currentCore.getOtherCoreReference().getDataCache().setSate(otherCachePosition, Codes.I);
+            currentCore.getOtherCoreReference().getDataCache().setState(otherCachePosition, Codes.I);
 
             // Si el estado de la otra cache es C
         }else if(otherCacheState == Codes.C){
             // Invalidar posicion
-            currentCore.getOtherCoreReference().getDataCache().setSate(otherCachePosition, Codes.I);
+            currentCore.getOtherCoreReference().getDataCache().setState(otherCachePosition, Codes.I);
         }
 
         // Liberar posicion de la otra cache y el bus hacia la mimsma
@@ -123,7 +123,7 @@ public class Store extends InstructionsResources{
         }
 
         // Poner posicion en M
-        currentCore.getDataCache().setSate(position, Codes.M);
+        currentCore.getDataCache().setState(position, Codes.M);
         currentCore.getDataCache().setTag(position, block);
 
         return this.finishSW(memDirection, currentCore, position, registerValue);

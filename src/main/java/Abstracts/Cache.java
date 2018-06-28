@@ -10,7 +10,7 @@ public abstract class Cache {
     protected Vector<Integer> tags;
     protected Vector<Character> states;
 
-    public void setSate(int numBlock, char state){
+    public void setState(int numBlock, char state){
         this.states.set(numBlock, state);
     }
 

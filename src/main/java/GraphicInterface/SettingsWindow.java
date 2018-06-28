@@ -2,7 +2,16 @@ package GraphicInterface;
 
 import java.awt.EventQueue;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JRadioButton;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;

@@ -1,6 +1,7 @@
 import Control.Program;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
+import javax.swing.UnsupportedLookAndFeelException;
 
 public class Main {
     public static void main (String args[]) {

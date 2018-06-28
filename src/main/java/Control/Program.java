@@ -5,8 +5,6 @@ import Cores.DualCore;
 import Cores.SingleCore;
 import Enums.Codes;
 import GraphicInterface.ResultsWindow;
-import Instructions.Load;
-import Instructions.Store;
 import Structures.DataMemory;
 import Structures.InstructionMemory;
 import Structures.Registers;
@@ -102,8 +100,8 @@ public class Program {
         core0 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection, this.takenFiles, this.updateFileState, this.results);
         core1 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection, this.takenFiles, this.updateFileState, this.results);
 
-        core0.setCoreRefence(core1);
-        core1.setCoreRefence(core0);
+        core0.setCoreReference(core1);
+        core1.setCoreReference(core0);
 
         //Thread thread0 = new Thread(core0, Codes.THREAD_0);
         Thread thread1 = new Thread(core0, Codes.THREAD_1);

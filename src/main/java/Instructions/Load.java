@@ -48,7 +48,7 @@ public class Load extends InstructionsResources{
 
                 // Guardar bloque de la caché en memoria.
                 memory.setBlock(tag * 16, currentCore.getDataCache().getBlock(position));
-                currentCore.getDataCache().setSate(position, Codes.I);
+                currentCore.getDataCache().setState(position, Codes.I);
 
                 memory.getMemoryBusLock().unlock();
             }
@@ -96,14 +96,14 @@ public class Load extends InstructionsResources{
 
             // Si no está reservada, sigue aquí y se bloquea
             memory.setBlock(otherCacheTag * 16, currentCore.getOtherCoreReference().getDataCache().getBlock(otherCachePosition));
-            currentCore.getOtherCoreReference().getDataCache().setSate(otherCachePosition, Codes.I);
+            currentCore.getOtherCoreReference().getDataCache().setState(otherCachePosition, Codes.I);
 
             memory.getMemoryBusLock().unlock();
         }
 
         // Cargar bloque en caché propia (40 ciclos, controlar con barrera).
         currentCore.getDataCache().setBlock(position, memory.getBlock(memDirection));
-        currentCore.getDataCache().setSate(position, Codes.C);
+        currentCore.getDataCache().setState(position, Codes.C);
         currentCore.getDataCache().setTag(position, block);
 
         // Liberar

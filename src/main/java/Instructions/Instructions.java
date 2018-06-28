@@ -7,8 +7,6 @@ import Structures.Registers;
 
 import java.util.Vector;
 
-import static java.lang.System.exit;
-
 // IR: Instruccion Actual
 
 // Doble barrera: por el doble hilillo, cuando se espera que un hilo acomode (contexto, subir y demas), los otros no
@@ -83,7 +81,6 @@ public class Instructions {
                 for(int i = 0; i < 32; i++){
                     registers.setRegister(i, Codes.EMPTY_REGISTER);
                 }
-                //exit(0);
                 break;
         }
 
