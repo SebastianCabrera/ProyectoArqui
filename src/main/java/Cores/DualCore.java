@@ -14,8 +14,8 @@ import java.util.concurrent.Semaphore;
  * Created by J.A Rodríguez on 16/06/2018.
  */
 public class DualCore extends Core {
-    public DualCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> fbd, Vector<Boolean> ft, Semaphore s){
-        super(Codes.BLOCKS_IN_CACHE_0, insMem, dataMem, programBarrier, fbd, ft, s);
+    public DualCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> fbd, Vector<Boolean> ft, Semaphore s, Vector<Registers> res){
+        super(Codes.BLOCKS_IN_CACHE_0, insMem, dataMem, programBarrier, fbd, ft, s, res);
         this.coreId = Codes.CORE_0;
     }
 

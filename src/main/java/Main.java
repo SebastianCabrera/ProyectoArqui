@@ -1,12 +1,6 @@
-import Abstracts.Memory;
-import Cores.SingleCore;
-import GraphicInterface.SettingsWindow;
-import Instructions.Load;
-import Structures.DataMemory;
-import Structures.InstructionMemory;
+import Control.Program;
 
 import javax.swing.*;
-import java.awt.*;
 
 public class Main {
     public static void main (String args[]) {
@@ -16,7 +10,7 @@ public class Main {
          * lo demás esté listo.
          *************************************************************************************************/
 
-        /*try {
+        try {
 
             // Para que las ventanas tengan el aspecto del sistema operativo y no el default de Java
             javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
@@ -26,7 +20,7 @@ public class Main {
                     "Appearance error", JOptionPane.ERROR_MESSAGE);
         }
 
-        // Para correr la ventana a través de un thread
+        /*// Para correr la ventana a través de un thread
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {

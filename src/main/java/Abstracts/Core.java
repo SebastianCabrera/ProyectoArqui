@@ -37,7 +37,11 @@ public abstract class Core extends Thread{
 
     protected Semaphore semaphore;
 
-    protected Core(int cacheSize, InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> fbd, Vector<Boolean> tf, Semaphore s){
+    protected Vector<Integer> takenFilesID;
+
+    protected Vector<Registers> results;
+
+    protected Core(int cacheSize, InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> fbd, Vector<Boolean> tf, Semaphore s, Vector<Registers> res){
         this.contextsList = new Vector<>();
 
         this.barrier = programBarrier;
@@ -58,6 +62,10 @@ public abstract class Core extends Thread{
         this.takenFiles = tf;
 
         this.semaphore = s;
+
+        this.takenFilesID = new Vector<>();
+
+        this.results = res;
     }
 
     public void setCoreRefence(Core refence){
@@ -103,5 +111,9 @@ public abstract class Core extends Thread{
 
     public Vector<Registers> getContextsList(){
         return this.contextsList;
+    }
+
+    public Vector<Integer> getTakenFilesID(){
+        return this.takenFilesID;
     }
 }

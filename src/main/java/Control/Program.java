@@ -1,7 +1,10 @@
+package Control;
+
 import Abstracts.Core;
 import Cores.DualCore;
 import Cores.SingleCore;
 import Enums.Codes;
+import GraphicInterface.ResultsWindow;
 import Instructions.Load;
 import Instructions.Store;
 import Structures.DataMemory;
@@ -24,6 +27,9 @@ public class Program {
     private Vector<Integer> filesBeginDirection;
     private Vector<Boolean> takenFiles;
     private Semaphore updateFileState;
+    private Vector<Registers> results;
+
+    private ResultsWindow rw;
 
     public Program(){
         this.instructionMemory = new InstructionMemory();
@@ -36,6 +42,11 @@ public class Program {
         this.takenFiles = new Vector<>();
 
         this.updateFileState = new Semaphore(1);
+
+        this.results = new Vector<>();
+
+        this.rw = new ResultsWindow(this);
+        rw.setLocationRelativeTo(null);
     }
 
     public void loadInstructions(String[] files){
@@ -45,6 +56,7 @@ public class Program {
             File encyptedFile = new File(".\\Hilillos\\" + files[i]);
 
             this.takenFiles.add(false);
+            this.results.add(new Registers());
 
             if (encyptedFile.isFile()) {
                 String line;
@@ -81,16 +93,14 @@ public class Program {
             this.filesBeginDirection.add(memoryPosition + 384);
         }
 
-
-
-
+        this.rw.fillFilesCombobox(files);
     }
 
     public void runProgram(){
 
 
-        core0 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection, this.takenFiles, this.updateFileState);
-        core1 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection, this.takenFiles, this.updateFileState);
+        core0 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection, this.takenFiles, this.updateFileState, this.results);
+        core1 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection, this.takenFiles, this.updateFileState, this.results);
 
         core0.setCoreRefence(core1);
         core1.setCoreRefence(core0);
@@ -110,6 +120,8 @@ public class Program {
             e.printStackTrace();
         }
 
+        rw.setVisible(true);
+
         Vector<Integer> memoryContent = this.dataMemory.getMemory();
 
         System.out.println("Memoria antes");
@@ -122,13 +134,7 @@ public class Program {
             }
         }
 
-        //Load load = new Load();
-        //System.out.println("LOAD " + load.LW(32,this.dataMemory, this.core1));
-
-        //Store store = new Store();
-        //System.out.println("LOAD " + store.SW(32,this.dataMemory, this.core1, 12345));
-
-        //System.out.println("Cache");
+        System.out.println("Cache");
 
         for(int i = 0; i < core1.getDataCache().getCache().size(); i++){
             for(int j = 0; j < core1.getDataCache().getCache().get(i).size(); j++){
@@ -150,23 +156,26 @@ public class Program {
 
         System.out.println("Registers");
 
-        Vector<Registers> contexts = core1.getContextsList();
+        Vector<Registers> contexts = core0.getContextsList();
 
         for(int j = 0; j < contexts.size(); j++) {
-            System.out.println("\nHilillo");
+            System.out.println("\nHilillo " + core0.getTakenFilesID().get(j));
             for (int i = 0; i < 32; i++) {
                 System.out.println("R" + i + ": " + contexts.get(j).getRegister(i) + " ");
             }
         }
 
-        contexts = core0.getContextsList();
+        contexts = core1.getContextsList();
 
         for(int j = 0; j < contexts.size(); j++) {
-            System.out.println("\nHilillo");
+            System.out.println("\nHilillo " + core1.getTakenFilesID().get(j));
             for (int i = 0; i < 32; i++) {
                 System.out.println("R" + i + ": " + contexts.get(j).getRegister(i) + " ");
             }
         }
     }
 
+    public Vector<Integer> getRegistersByFileID(int fileID){
+        return this.results.get(fileID).getRegisters();
+    }
 }

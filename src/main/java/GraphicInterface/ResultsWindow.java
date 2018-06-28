@@ -1,5 +1,8 @@
 package GraphicInterface;
 
+import Control.Program;
+import Enums.Codes;
+
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
@@ -8,6 +11,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.UIManager;
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Vector;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.border.BevelBorder;
@@ -24,27 +30,18 @@ public class ResultsWindow extends JFrame {
     private JTable tableCache1;
     private JPanel panelRegistersContent;
     private JTable tableRegisters;
+    private JComboBox comboBoxFiles;
+    private JLabel lblPCValue;
 
-    /**
-     * Launch the application.
-     */
-    public static void main(String[] args) {
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    ResultsWindow frame = new ResultsWindow();
-                    frame.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
+
+    private Program mainProgram;
 
     /**
      * Create the frame.
      */
-    public ResultsWindow() {
+    public ResultsWindow(Program p) {
+        this.mainProgram = p;
+
         setTitle("Simulation Results");
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -61,6 +58,7 @@ public class ResultsWindow extends JFrame {
         panelDataMem.setLayout(null);
 
         tableDataMem = new JTable();
+        tableDataMem.setEnabled(false);
         tableDataMem.setBounds(10, 22, 582, 128);
         panelDataMem.add(tableDataMem);
         tableDataMem.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
@@ -106,6 +104,7 @@ public class ResultsWindow extends JFrame {
         panelCache0.setLayout(null);
 
         tableCache0 = new JTable();
+        tableCache0.setEnabled(false);
         tableCache0.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
         tableCache0.setModel(new DefaultTableModel(
                 new Object[][] {
@@ -145,6 +144,7 @@ public class ResultsWindow extends JFrame {
         panelCache1.setLayout(null);
 
         tableCache1 = new JTable();
+        tableCache1.setEnabled(false);
         tableCache1.setModel(new DefaultTableModel(
                 new Object[][] {
                         {null, null, null, null},
@@ -185,35 +185,48 @@ public class ResultsWindow extends JFrame {
         contentPane.add(panelRegistersContent);
         panelRegistersContent.setLayout(null);
 
-        JComboBox comboBoxFiles = new JComboBox();
+        comboBoxFiles = new JComboBox();
+        comboBoxFiles.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                int selectedIndex = comboBoxFiles.getSelectedIndex()-1;
+
+                if(selectedIndex == -1){
+                    clearRegistersTable();
+                }else{
+                    fillRegistersTable(selectedIndex);
+                }
+            }
+        });
+
         comboBoxFiles.setModel(new DefaultComboBoxModel(new String[] {"Select a file"}));
-        comboBoxFiles.setBounds(10, 18, 175, 20);
+        comboBoxFiles.setBounds(10, 18, 119, 20);
         panelRegistersContent.add(comboBoxFiles);
 
-        JLabel lblCycles = new JLabel("Total cycles used:");
+        JLabel lblCycles = new JLabel("Cycles used:");
         lblCycles.setBounds(10, 58, 91, 14);
         panelRegistersContent.add(lblCycles);
 
         JLabel labelCyclesValue = new JLabel("<Cycles>");
-        labelCyclesValue.setBounds(139, 58, 62, 14);
+        labelCyclesValue.setBounds(83, 58, 62, 14);
         panelRegistersContent.add(labelCyclesValue);
 
         JLabel lblPC = new JLabel("PC:");
         lblPC.setBounds(10, 83, 46, 14);
         panelRegistersContent.add(lblPC);
 
-        JLabel lblPCValue = new JLabel("<PC>");
-        lblPCValue.setBounds(139, 83, 46, 14);
+        lblPCValue = new JLabel("N/A");
+        lblPCValue.setBounds(83, 83, 46, 14);
         panelRegistersContent.add(lblPCValue);
 
         JPanel panelRegisters = new JPanel();
         panelRegisters.setBorder(new TitledBorder(null, "Registers", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        panelRegisters.setBounds(220, 58, 372, 97);
+        panelRegisters.setBounds(139, 58, 453, 97);
         panelRegistersContent.add(panelRegisters);
         panelRegisters.setLayout(null);
 
         tableRegisters = new JTable();
-        tableRegisters.setBounds(10, 21, 352, 64);
+        tableRegisters.setEnabled(false);
+        tableRegisters.setBounds(10, 21, 433, 64);
         panelRegisters.add(tableRegisters);
         tableRegisters.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
         tableRegisters.setModel(new DefaultTableModel(
@@ -252,6 +265,12 @@ public class ResultsWindow extends JFrame {
         JButton btnClose = new JButton("Close");
         btnClose.setBounds(523, 544, 89, 23);
         contentPane.add(btnClose);
+        btnClose.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
+
         tableDataMem.getColumnModel().getColumn(0).setResizable(false);
         tableDataMem.getColumnModel().getColumn(1).setResizable(false);
         tableDataMem.getColumnModel().getColumn(2).setResizable(false);
@@ -264,5 +283,35 @@ public class ResultsWindow extends JFrame {
         tableDataMem.getColumnModel().getColumn(9).setResizable(false);
         tableDataMem.getColumnModel().getColumn(10).setResizable(false);
         tableDataMem.getColumnModel().getColumn(11).setResizable(false);
+    }
+
+    public void fillFilesCombobox(String[] names){
+        for(int i = 0; i < names.length; i++){
+            this.comboBoxFiles.addItem(names[i]);
+        }
+    }
+
+    private void clearRegistersTable(){
+        for(int i = 0; i < this.tableRegisters.getRowCount(); i++){
+            for(int j = 0; j < this.tableRegisters.getColumnCount(); j++){
+                this.tableRegisters.setValueAt("",i,j);
+            }
+        }
+
+        this.lblPCValue.setText("N/A");
+    }
+
+    private void fillRegistersTable(int file){
+        Vector<Integer> registers = this.mainProgram.getRegistersByFileID(file);
+        int index = 0;
+
+        for(int i = 0; i < this.tableRegisters.getColumnCount(); i++){
+            for(int j = 0; j < this.tableRegisters.getRowCount(); j++){
+                this.tableRegisters.setValueAt("R" + index + ": " + registers.get(index),j,i);
+                index++;
+            }
+        }
+
+        this.lblPCValue.setText("" + registers.get(Codes.PC));
     }
 }

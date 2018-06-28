@@ -4,6 +4,7 @@ import Abstracts.Core;
 import Enums.Codes;
 import Structures.DataMemory;
 import Structures.InstructionMemory;
+import Structures.Registers;
 
 import java.util.Vector;
 import java.util.concurrent.BrokenBarrierException;
@@ -14,19 +15,13 @@ import java.util.concurrent.Semaphore;
  * Created by J.A Rodríguez on 16/06/2018.
  */
 public class SingleCore extends Core {
-    public SingleCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> fbd, Vector<Boolean> ft, Semaphore s){
-        super(Codes.BLOCKS_IN_CACHE_1, insMem, dataMem, programBarrier, fbd, ft, s);
+    public SingleCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> fbd, Vector<Boolean> ft, Semaphore s, Vector<Registers> res){
+        super(Codes.BLOCKS_IN_CACHE_1, insMem, dataMem, programBarrier, fbd, ft, s, res);
         this.coreId = Codes.CORE_1;
     }
 
     @Override
     public void run(){
-        // Testing code
-        //this.clock++;
-        //System.out.println("In C1");
-        //System.out.println("Clock in C1:" + this.clock);
-        //System.out.println("Clock in C0 from C1: " + this.coreRefence.getClock() + "\n");
-
 
         // Prueba leyendo desde memoria. Debería ser desde caché
         int block = 0;
@@ -41,6 +36,7 @@ public class SingleCore extends Core {
 
                 if(!this.takenFiles.get(i)){
                     this.takenFiles.set(i, true);
+                    this.takenFilesID.add(i);
                     this.registers.setRegister(Codes.PC, this.filesBeginDirection.get(i) - 384);
 
                     this.semaphore.release();
@@ -72,6 +68,8 @@ public class SingleCore extends Core {
                         System.out.println(block);
                     }
 
+                    this.results.set(i, this.getContextsList().lastElement());
+
                 }else{
                     this.semaphore.release();
                 }
@@ -89,8 +87,6 @@ public class SingleCore extends Core {
         } catch (BrokenBarrierException e) {
             e.printStackTrace();
         }
-
-        //super.run();
     }
 
     private int calculateInstructionBlock(int direction){
