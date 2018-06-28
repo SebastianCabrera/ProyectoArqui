@@ -19,23 +19,7 @@ public class Store extends InstructionsResources{
 
         // Si la posición está reservada, reinicia
         if(!(currentCore.getDataCache().getPositionLock(position).tryLock())){
-            this.restart();
-            System.out.println("POS 0 MYCACHE " + currentCore.getDataCache().getPositionLock(0));
-            System.out.println("POS 1 MYCACHE " + currentCore.getDataCache().getPositionLock(1));
-            System.out.println("POS 2 MYCACHE " + currentCore.getDataCache().getPositionLock(2));
-            System.out.println("POS 3 MYCACHE " + currentCore.getDataCache().getPositionLock(3));
-            System.out.println("MYCACHE " + currentCore.getDataCache().getCacheBusLock());
-            System.out.println("POS 0 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(0));
-            System.out.println("POS 1 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(1));
-            System.out.println("POS 2 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(2));
-            System.out.println("POS 3 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(3));
-            System.out.println("OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getCacheBusLock());
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return -1;
+            return this.restart();
         }
 
         // Si sigue aquí, es que on está reservada y se bloqueó.
@@ -55,23 +39,7 @@ public class Store extends InstructionsResources{
 
                 // Si no se puede bloquear bus a memoria
                 if(!(memory.getMemoryBusLock().tryLock())){
-                    this.restart();
-                    System.out.println("POS 0 MYCACHE " + currentCore.getDataCache().getPositionLock(0));
-                    System.out.println("POS 1 MYCACHE " + currentCore.getDataCache().getPositionLock(1));
-                    System.out.println("POS 2 MYCACHE " + currentCore.getDataCache().getPositionLock(2));
-                    System.out.println("POS 3 MYCACHE " + currentCore.getDataCache().getPositionLock(3));
-                    System.out.println("MYCACHE " + currentCore.getDataCache().getCacheBusLock());
-                    System.out.println("POS 0 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(0));
-                    System.out.println("POS 1 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(1));
-                    System.out.println("POS 2 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(2));
-                    System.out.println("POS 3 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(3));
-                    System.out.println("OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getCacheBusLock());
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    return -1;
+                    return this.restart();
                 }
                 // Si sigue aquí, es porque no estaba reservada y se bloque'o
 
@@ -89,23 +57,7 @@ public class Store extends InstructionsResources{
 
         // Si no puede bloquear el bus a la otra cache, reinicia.
         if(!(currentCore.getOtherCoreReference().getDataCache().getCacheBusLock().tryLock())){
-            this.restart();
-            System.out.println("POS 0 MYCACHE " + currentCore.getDataCache().getPositionLock(0));
-            System.out.println("POS 1 MYCACHE " + currentCore.getDataCache().getPositionLock(1));
-            System.out.println("POS 2 MYCACHE " + currentCore.getDataCache().getPositionLock(2));
-            System.out.println("POS 3 MYCACHE " + currentCore.getDataCache().getPositionLock(3));
-            System.out.println("MYCACHE " + currentCore.getDataCache().getCacheBusLock());
-            System.out.println("POS 0 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(0));
-            System.out.println("POS 1 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(1));
-            System.out.println("POS 2 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(2));
-            System.out.println("POS 3 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(3));
-            System.out.println("OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getCacheBusLock());
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return -1;
+            return this.restart();
         }
 
         // Si no esta reservado, continua desde aqui ya bloqueado
@@ -116,23 +68,7 @@ public class Store extends InstructionsResources{
 
         // Si no se puede bloquear la posición de la otra caché
         if(!(currentCore.getOtherCoreReference().getDataCache().getPositionLock(otherCachePosition)).tryLock()){
-            this.restart();
-            System.out.println("POS 0 MYCACHE " + currentCore.getDataCache().getPositionLock(0));
-            System.out.println("POS 1 MYCACHE " + currentCore.getDataCache().getPositionLock(1));
-            System.out.println("POS 2 MYCACHE " + currentCore.getDataCache().getPositionLock(2));
-            System.out.println("POS 3 MYCACHE " + currentCore.getDataCache().getPositionLock(3));
-            System.out.println("MYCACHE " + currentCore.getDataCache().getCacheBusLock());
-            System.out.println("POS 0 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(0));
-            System.out.println("POS 1 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(1));
-            System.out.println("POS 2 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(2));
-            System.out.println("POS 3 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(3));
-            System.out.println("OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getCacheBusLock());
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return -1;
+            return this.restart();
         }
 
         // Si no está reservada continúa desde aquí y se bloquea
@@ -142,16 +78,7 @@ public class Store extends InstructionsResources{
         char otherCacheState = currentCore.getOtherCoreReference().getDataCache().getState(otherCachePosition);
 
         // Obtener etiqueta en otherCache
-        int otherCacheTag = currentCore.getDataCache().getTag(position);
-
-        System.out.println("OTHERCACHE TAG: " + otherCacheTag);
-        System.out.println("OTHERCACHEPOS: " + otherCachePosition);
-
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        int otherCacheTag = currentCore.getOtherCoreReference().getDataCache().getTag(position);
 
         // Si el estado en la otra caché es M
         if(otherCacheState == Codes.M) {
@@ -159,29 +86,12 @@ public class Store extends InstructionsResources{
 
             // Si no se puede bloquear la memoria
             if (!(memory.getMemoryBusLock().tryLock())) {
-                this.restart();
-                System.out.println("POS 0 MYCACHE " + currentCore.getDataCache().getPositionLock(0));
-                System.out.println("POS 1 MYCACHE " + currentCore.getDataCache().getPositionLock(1));
-                System.out.println("POS 2 MYCACHE " + currentCore.getDataCache().getPositionLock(2));
-                System.out.println("POS 3 MYCACHE " + currentCore.getDataCache().getPositionLock(3));
-                System.out.println("MYCACHE " + currentCore.getDataCache().getCacheBusLock());
-                System.out.println("POS 0 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(0));
-                System.out.println("POS 1 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(1));
-                System.out.println("POS 2 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(2));
-                System.out.println("POS 3 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(3));
-                System.out.println("OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getCacheBusLock());
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                return -1;
+                return this.restart();
             }
 
             // Si no está reservada, sigue aquí ya bloqueada
 
             // Guardar bloque de la otra cache en memoria
-
             memory.setBlock(otherCacheTag * 16, currentCore.getOtherCoreReference().getDataCache().getBlock(otherCachePosition));
             memory.getMemoryBusLock().unlock();
 
@@ -202,23 +112,7 @@ public class Store extends InstructionsResources{
         if(state != Codes.C){
             // Si no se puede bloquear memoria
             if(!(memory.getMemoryBusLock().tryLock())){
-                this.restart();
-                System.out.println("POS 0 MYCACHE " + currentCore.getDataCache().getPositionLock(0));
-                System.out.println("POS 1 MYCACHE " + currentCore.getDataCache().getPositionLock(1));
-                System.out.println("POS 2 MYCACHE " + currentCore.getDataCache().getPositionLock(2));
-                System.out.println("POS 3 MYCACHE " + currentCore.getDataCache().getPositionLock(3));
-                System.out.println("MYCACHE " + currentCore.getDataCache().getCacheBusLock());
-                System.out.println("POS 0 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(0));
-                System.out.println("POS 1 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(1));
-                System.out.println("POS 2 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(2));
-                System.out.println("POS 3 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(3));
-                System.out.println("OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getCacheBusLock());
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                return -1;
+                return this.restart();
             }
 
             // Cargar bloque en caché propia (40 ciclos, controlar con barrera).
@@ -239,21 +133,6 @@ public class Store extends InstructionsResources{
         currentCore.getDataCache().setWord(position, this.calculateWord(memDirection), registerValue);
         currentCore.getDataCache().getPositionLock(position).unlock();
 
-        System.out.println("POS 0 MYCACHE " + currentCore.getDataCache().getPositionLock(0));
-        System.out.println("POS 1 MYCACHE " + currentCore.getDataCache().getPositionLock(1));
-        System.out.println("POS 2 MYCACHE " + currentCore.getDataCache().getPositionLock(2));
-        System.out.println("POS 3 MYCACHE " + currentCore.getDataCache().getPositionLock(3));
-        System.out.println("MYCACHE " + currentCore.getDataCache().getCacheBusLock());
-        System.out.println("POS 0 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(0));
-        System.out.println("POS 1 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(1));
-        System.out.println("POS 2 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(2));
-        System.out.println("POS 3 OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getPositionLock(3));
-        System.out.println("OTHERCACHE " + currentCore.getOtherCoreReference().getDataCache().getCacheBusLock());
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         this.reservedStructures.clear();
 
         return Codes.SUCCESS;

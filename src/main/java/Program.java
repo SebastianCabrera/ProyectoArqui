@@ -153,10 +153,20 @@ public class Program {
         Vector<Registers> contexts = core1.getContextsList();
 
         for(int j = 0; j < contexts.size(); j++) {
-            System.out.println("\nHilillo " + j);
+            System.out.println("\nHilillo");
+            for (int i = 0; i < 32; i++) {
+                System.out.println("R" + i + ": " + contexts.get(j).getRegister(i) + " ");
+            }
+        }
+
+        contexts = core0.getContextsList();
+
+        for(int j = 0; j < contexts.size(); j++) {
+            System.out.println("\nHilillo");
             for (int i = 0; i < 32; i++) {
                 System.out.println("R" + i + ": " + contexts.get(j).getRegister(i) + " ");
             }
         }
     }
+
 }

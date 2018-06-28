@@ -83,7 +83,7 @@ public class Load extends InstructionsResources{
         char otherCacheState = currentCore.getOtherCoreReference().getDataCache().getState(otherCachePosition);
 
         // Obtener etiqueta en otherCache
-        int otherCacheTag = currentCore.getDataCache().getTag(position);
+        int otherCacheTag = currentCore.getOtherCoreReference().getDataCache().getTag(position);
 
         // Si el estado en la otra caché es M
         if(otherCacheState == Codes.M){
