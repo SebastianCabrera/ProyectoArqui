@@ -12,6 +12,7 @@ import java.io.*;
 import java.util.Vector;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Semaphore;
 
 public class Program {
     private Core core0;
@@ -20,12 +21,21 @@ public class Program {
     private DataMemory dataMemory;
     private int clock;
     private final CyclicBarrier barrier;
+    private Vector<Integer> filesBeginDirection;
+    private Vector<Boolean> takenFiles;
+    private Semaphore updateFileState;
 
     public Program(){
         this.instructionMemory = new InstructionMemory();
         this.dataMemory = new DataMemory();
         this.clock = 0;
-        this.barrier = new CyclicBarrier(2);
+        this.barrier = new CyclicBarrier(3);
+        this.filesBeginDirection = new Vector<>();
+        this.filesBeginDirection.add(Codes.INSTRUCTION_MEM_BEGIN);
+
+        this.takenFiles = new Vector<>();
+
+        this.updateFileState = new Semaphore(1);
     }
 
     public void loadInstructions(String[] files){
@@ -33,6 +43,8 @@ public class Program {
 
         for(int i = 0; i < files.length; i++){
             File encyptedFile = new File(".\\Hilillos\\" + files[i]);
+
+            this.takenFiles.add(false);
 
             if (encyptedFile.isFile()) {
                 String line;
@@ -65,6 +77,8 @@ public class Program {
                     e.printStackTrace();
                 }
             }
+
+            this.filesBeginDirection.add(memoryPosition + 384);
         }
 
 
@@ -75,17 +89,17 @@ public class Program {
     public void runProgram(){
 
 
-        core0 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier);
-        core1 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier);
+        core0 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection, this.takenFiles, this.updateFileState);
+        core1 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection, this.takenFiles, this.updateFileState);
 
         core0.setCoreRefence(core1);
         core1.setCoreRefence(core0);
 
         //Thread thread0 = new Thread(core0, Codes.THREAD_0);
-        //Thread thread1 = new Thread(core0, Codes.THREAD_1);
+        Thread thread1 = new Thread(core0, Codes.THREAD_1);
         Thread thread2 = new Thread(core1, Codes.THREAD_2);
         //thread0.start();
-        //thread1.start();
+        thread1.start();
         thread2.start();
 
         try {

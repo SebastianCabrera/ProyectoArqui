@@ -6,6 +6,7 @@ import Structures.*;
 import java.util.Vector;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by J.A Rodríguez on 14/06/2018.
@@ -31,7 +32,12 @@ public abstract class Core extends Thread{
 
     protected Instructions instructions;
 
-    protected Core(int cacheSize, InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier){
+    protected Vector<Integer> filesBeginDirection;
+    protected Vector<Boolean> takenFiles;
+
+    protected Semaphore semaphore;
+
+    protected Core(int cacheSize, InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> fbd, Vector<Boolean> tf, Semaphore s){
         this.contextsList = new Vector<>();
 
         this.barrier = programBarrier;
@@ -47,6 +53,11 @@ public abstract class Core extends Thread{
         this.clock = 0;
 
         this.instructions = new Instructions();
+
+        this.filesBeginDirection = fbd;
+        this.takenFiles = tf;
+
+        this.semaphore = s;
     }
 
     public void setCoreRefence(Core refence){

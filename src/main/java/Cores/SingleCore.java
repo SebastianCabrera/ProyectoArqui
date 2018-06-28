@@ -8,13 +8,14 @@ import Structures.InstructionMemory;
 import java.util.Vector;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by J.A Rodríguez on 16/06/2018.
  */
 public class SingleCore extends Core {
-    public SingleCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier){
-        super(Codes.BLOCKS_IN_CACHE_1, insMem, dataMem, programBarrier);
+    public SingleCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> fbd, Vector<Boolean> ft, Semaphore s){
+        super(Codes.BLOCKS_IN_CACHE_1, insMem, dataMem, programBarrier, fbd, ft, s);
         this.coreId = Codes.CORE_1;
     }
 
@@ -33,34 +34,51 @@ public class SingleCore extends Core {
         int direction = 0;
         int position = 0;
 
-        for(int i = 0; i < 6; i++) {
+        for(int i = 0; i < this.filesBeginDirection.size() - 1; i++) {
 
-            boolean cycle = true;
+            try {
+                this.semaphore.acquire();
 
-            while (cycle) {
-                //System.out.print("INST ");
-                // Crear método en memoria para cargar palabra, no así.
-                direction = this.registers.getRegister(Codes.PC) + 384;
-                block = this.calculateInstructionBlock(this.registers.getRegister(Codes.PC));
-                word = this.calculateWord(direction);
-                position = block % 4;
+                if(!this.takenFiles.get(i)){
+                    this.takenFiles.set(i, true);
+                    this.registers.setRegister(Codes.PC, this.filesBeginDirection.get(i) - 384);
 
-                if (this.instructionCache.getTag(position) != block) {
-                    this.instructionCache.setBlock(position, this.instructionMemory.getBlock(direction));
-                    this.instructionCache.setTag(position, block);
+                    this.semaphore.release();
+
+                    boolean cycle = true;
+
+                    while (cycle) {
+
+                        direction = this.registers.getRegister(Codes.PC) + 384;
+                        block = this.calculateInstructionBlock(this.registers.getRegister(Codes.PC));
+                        word = this.calculateWord(direction);
+                        position = block % 4;
+
+                        if (this.instructionCache.getTag(position) != block) {
+                            this.instructionCache.setBlock(position, this.instructionMemory.getBlock(direction));
+                            this.instructionCache.setTag(position, block);
+                        }
+
+                        Vector<Integer> instruction = this.instructionCache.getWord(position, word);
+
+                        // Freno por ahora
+                        if (instruction.toString().equals("[63, 0, 0, 0]")) {
+                            cycle = false;
+                        }
+
+                        System.out.println(instruction);
+                        this.instructions.decode(this.registers, instruction, this.dataMemory, this);
+
+                        System.out.println(block);
+                    }
+
+                }else{
+                    this.semaphore.release();
                 }
 
-                Vector<Integer> instruction = this.instructionCache.getWord(position, word);
 
-                // Freno por ahora
-                if (instruction.toString().equals("[63, 0, 0, 0]")) {
-                    cycle = false;
-                }
-
-                System.out.println(instruction);
-                this.instructions.decode(this.registers, instruction, this.dataMemory, this);
-
-                System.out.println(block);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
 

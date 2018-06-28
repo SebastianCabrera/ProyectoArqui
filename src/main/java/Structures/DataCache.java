@@ -10,8 +10,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DataCache extends Cache {
 
     private Vector<Vector<Integer>> cache;
-    private Vector<Lock> locks;
-    private Lock cacheBus;
+    private Vector<ReentrantLock> locks;
+    private ReentrantLock cacheBus;
 
     public DataCache(int totalBlocks){
         this.cache = new Vector<>(totalBlocks);
@@ -60,11 +60,11 @@ public class DataCache extends Cache {
         return this.cache;
     }
 
-    public Lock getPositionLock(int position){
+    public ReentrantLock getPositionLock(int position){
         return this.locks.get(position);
     }
 
-    public Lock getCacheBusLock(){
+    public ReentrantLock getCacheBusLock(){
         return this.cacheBus;
     }
 }

@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Created by J.A Rodríguez on 25/06/2018.
  */
 public abstract class InstructionsResources {
-    protected Vector<Lock> reservedStructures;
+    protected Vector<ReentrantLock> reservedStructures;
 
     protected InstructionsResources(){
         reservedStructures = new Vector<>();
@@ -35,7 +35,9 @@ public abstract class InstructionsResources {
 
     protected int restart(){
         for(int i = 0; i < this.reservedStructures.size(); i++){
-            this.reservedStructures.get(i).unlock();
+            if(this.reservedStructures.get(i).isLocked()) {
+                this.reservedStructures.get(i).unlock();
+            }
         }
         this.reservedStructures.clear();
 

@@ -8,13 +8,14 @@ import Structures.Registers;
 
 import java.util.Vector;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by J.A Rodríguez on 16/06/2018.
  */
 public class DualCore extends Core {
-    public DualCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier){
-        super(Codes.BLOCKS_IN_CACHE_0, insMem, dataMem, programBarrier);
+    public DualCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> fbd, Vector<Boolean> ft, Semaphore s){
+        super(Codes.BLOCKS_IN_CACHE_0, insMem, dataMem, programBarrier, fbd, ft, s);
         this.coreId = Codes.CORE_0;
     }
 

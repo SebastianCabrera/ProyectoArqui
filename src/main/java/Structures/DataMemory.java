@@ -9,7 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DataMemory extends Memory{
 
-    private Lock memoryBus;
+    private ReentrantLock memoryBus;
 
     public DataMemory() {
         super(Codes.DATA_MEM_CAPACITY);
@@ -36,7 +36,7 @@ public class DataMemory extends Memory{
         return block;
     }
 
-    public Lock getMemoryBusLock(){
+    public ReentrantLock getMemoryBusLock(){
         return this.memoryBus;
     }
 
