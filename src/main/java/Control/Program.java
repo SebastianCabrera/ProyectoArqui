@@ -100,8 +100,8 @@ public class Program {
         core0 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection, this.takenFiles, this.updateFileState, this.results);
         core1 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection, this.takenFiles, this.updateFileState, this.results);
 
-        core0.setCoreReference(core1);
-        core1.setCoreReference(core0);
+        core0.setOtherCoreReference(core1);
+        core1.setOtherCoreReference(core0);
 
         //Thread thread0 = new Thread(core0, Codes.THREAD_0);
         Thread thread1 = new Thread(core0, Codes.THREAD_1);
@@ -157,7 +157,7 @@ public class Program {
         Vector<Registers> contexts = core0.getContextsList();
 
         for(int j = 0; j < contexts.size(); j++) {
-            System.out.println("\nHilillo " + core0.getTakenFilesID().get(j));
+            System.out.println("\nHilillo " + core0.getMyTakenFiles().get(j));
             for (int i = 0; i < 32; i++) {
                 System.out.println("R" + i + ": " + contexts.get(j).getRegister(i) + " ");
             }
@@ -166,7 +166,7 @@ public class Program {
         contexts = core1.getContextsList();
 
         for(int j = 0; j < contexts.size(); j++) {
-            System.out.println("\nHilillo " + core1.getTakenFilesID().get(j));
+            System.out.println("\nHilillo " + core1.getMyTakenFiles().get(j));
             for (int i = 0; i < 32; i++) {
                 System.out.println("R" + i + ": " + contexts.get(j).getRegister(i) + " ");
             }
