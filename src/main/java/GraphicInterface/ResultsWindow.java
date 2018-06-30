@@ -204,7 +204,7 @@ public class ResultsWindow extends JFrame {
         lblCycles.setBounds(10, 58, 91, 14);
         panelRegistersContent.add(lblCycles);
 
-        JLabel labelCyclesValue = new JLabel("<Cycles>");
+        JLabel labelCyclesValue = new JLabel("" + this.mainProgram.getClock());
         labelCyclesValue.setBounds(83, 58, 62, 14);
         panelRegistersContent.add(labelCyclesValue);
 

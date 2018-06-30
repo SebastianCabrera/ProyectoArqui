@@ -25,6 +25,11 @@ public enum Codes {
     public static final int EMPTY_REGISTER = 0;
     public static final int EMPTY_BLOCK = -1;
 
+    // Codigos de takenfiles
+    public static final int NOT_TAKEN = 0;
+    public static final int IN_PROGRESS = 1;
+    public static final int TAKEN = 2;
+
     // Etiquetas
     public static final char I = 'I';
     public static final char M = 'M';

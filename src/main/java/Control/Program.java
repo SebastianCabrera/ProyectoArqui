@@ -10,6 +10,8 @@ import Structures.InstructionMemory;
 import Structures.Registers;
 
 import java.io.*;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Vector;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
@@ -22,10 +24,14 @@ public class Program {
     private DataMemory dataMemory;
     private int clock;
     private final CyclicBarrier barrier;
+    private final CyclicBarrier cycleBarrier;
     private Vector<Integer> filesBeginDirection;
-    private Vector<Boolean> takenFiles;
+    private Vector<Integer> takenFiles;
+    private Queue<Registers> contextsList;
+    private Queue<Integer> contextsListID;
     private Semaphore updateFileState;
     private Vector<Registers> results;
+    private int quantum;
 
     private ResultsWindow rw;
 
@@ -34,16 +40,23 @@ public class Program {
         this.dataMemory = new DataMemory();
         this.clock = 0;
         this.barrier = new CyclicBarrier(3);
+        this.cycleBarrier = new CyclicBarrier(2);
         this.filesBeginDirection = new Vector<>();
         this.filesBeginDirection.add(Codes.INSTRUCTION_MEM_BEGIN);
 
         this.takenFiles = new Vector<>();
+
+        this.contextsList = new LinkedList<>();
+
+        this.contextsListID = new LinkedList<>();
 
         this.updateFileState = new Semaphore(1);
 
         this.results = new Vector<>();
 
         this.rw = new ResultsWindow(this);
+
+        this.quantum = 10; //Cambiar, que sea segun el usuario
         rw.setLocationRelativeTo(null);
     }
 
@@ -53,8 +66,11 @@ public class Program {
         for(int i = 0; i < files.length; i++){
             File encyptedFile = new File(".\\Hilillos\\" + files[i]);
 
-            this.takenFiles.add(false);
+            this.takenFiles.add(Codes.NOT_TAKEN);
             this.results.add(new Registers());
+
+            this.contextsList.add(new Registers());
+            this.contextsListID.add(files[i].charAt(0) - 48);
 
             if (encyptedFile.isFile()) {
                 String line;
@@ -88,7 +104,7 @@ public class Program {
                 }
             }
 
-            this.filesBeginDirection.add(memoryPosition + 384);
+            this.filesBeginDirection.add(memoryPosition + Codes.INSTRUCTION_MEM_BEGIN);
         }
 
         this.rw.fillFilesCombobox(files);
@@ -97,8 +113,12 @@ public class Program {
     public void runProgram(){
 
 
-        core0 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection, this.takenFiles, this.updateFileState, this.results);
-        core1 = new SingleCore(this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection, this.takenFiles, this.updateFileState, this.results);
+        core0 = new SingleCore( this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection,
+                                this.takenFiles, this.updateFileState, this.results, this.quantum, this.contextsList,
+                                this.contextsListID, this.cycleBarrier);
+        core1 = new SingleCore( this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection,
+                                this.takenFiles, this.updateFileState, this.results, this.quantum, this.contextsList,
+                                this.contextsListID, this.cycleBarrier);
 
         core0.setOtherCoreReference(core1);
         core1.setOtherCoreReference(core0);
@@ -154,13 +174,24 @@ public class Program {
 
         System.out.println("Registers");
 
-        Vector<Registers> contexts = core0.getContextsList();
+        for(int i = 0; i < this.results.size(); i++){
+            System.out.println("\nHilillo " + i);
+            for (int j = 0; j < 32; j++) {
+                System.out.println("R" + j + ": " + this.results.get(i).getRegister(j) + " ");
+            }
+        }
+
+        System.out.println("Clock0: " + core0.getClock());
+        System.out.println("Clock1: " + core1.getClock());
+
+        /*Quegue<Registers> contexts = core0.getContextsList();
 
         for(int j = 0; j < contexts.size(); j++) {
             System.out.println("\nHilillo " + core0.getMyTakenFiles().get(j));
             for (int i = 0; i < 32; i++) {
-                System.out.println("R" + i + ": " + contexts.get(j).getRegister(i) + " ");
+                System.out.println("R" + i + ": " + contexts.peek().getRegister(i) + " ");
             }
+            contexts.remove();
         }
 
         contexts = core1.getContextsList();
@@ -168,12 +199,23 @@ public class Program {
         for(int j = 0; j < contexts.size(); j++) {
             System.out.println("\nHilillo " + core1.getMyTakenFiles().get(j));
             for (int i = 0; i < 32; i++) {
-                System.out.println("R" + i + ": " + contexts.get(j).getRegister(i) + " ");
+                System.out.println("R" + i + ": " + contexts.peek().getRegister(i) + " ");
             }
+            contexts.remove();
+        }*/
+
+        if((this.core0.getClock() - this.core1.getClock()) != 0){
+            this.clock = Codes.FAILURE;
+        }else{
+            this.clock = this.core0.getClock();
         }
     }
 
     public Vector<Integer> getRegistersByFileID(int fileID){
         return this.results.get(fileID).getRegisters();
+    }
+
+    public int getClock(){
+        return this.clock;
     }
 }

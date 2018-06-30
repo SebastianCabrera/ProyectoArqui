@@ -5,12 +5,15 @@ import Abstracts.InstructionsResources;
 import Enums.Codes;
 import Structures.DataMemory;
 
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+
 public class Store extends InstructionsResources{
     public Store(){
         super();
     }
 
-    public int SW(int memDirection, DataMemory memory, Core currentCore, int registerValue){
+    public int SW(int memDirection, DataMemory memory, Core currentCore, int registerValue, CyclicBarrier barrier){
         // Obtiene número de bloque
         int block = this.calculateBlock(memDirection);
 
@@ -116,7 +119,21 @@ public class Store extends InstructionsResources{
             }
 
             // Cargar bloque en caché propia (40 ciclos, controlar con barrera).
+            int j = 0;
+            while(j<40)
+            {
+                try {
+                    barrier.await();
+                    currentCore.addToClock();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (BrokenBarrierException e) {
+                    e.printStackTrace();
+                }
+                j++;
+            }
             currentCore.getDataCache().setBlock(position, memory.getBlock(memDirection));
+
 
             // Liberar memoria
             memory.getMemoryBusLock().unlock();

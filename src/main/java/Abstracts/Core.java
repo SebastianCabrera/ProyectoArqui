@@ -3,6 +3,8 @@ package Abstracts;
 import Instructions.Instructions;
 import Structures.*;
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Vector;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Semaphore;
@@ -18,22 +20,26 @@ public abstract class Core extends Thread{
     protected DataMemory dataMemory;                // Referencia a la memoria de datos compartida.
     protected InstructionMemory instructionMemory;  // Referencia a la memoria de instrucciones compartida.
     protected int clock;                            // Reloj del núcleo. Todos los núcleos deben mantenerlo igual en cada iteración.
-    protected CyclicBarrier barrier;                // Referencia a la barrera que sincroniza a los núcleos.
+    protected CyclicBarrier barrier;                // Referencia a la barrera que sincroniza a las impresiones.
+    protected CyclicBarrier cycleBarrier;           // Referencia a la barrera que sincroniza a los núcleos.
+    protected Queue<Registers> contextsList;        // Referencia a la cola de contextos del programa.
+    protected Queue<Integer> contextsListID;        // Referencia a la cola que indica el ID del hilillo que esta en la cola de contextos en cierta posicion.
 
     // Variables propias
 
-    protected Vector<Registers> contextsList;       // Lista de contextos pertenecientes al núcleo.
     protected DataCache dataCache;                  // Caché de datos propia del núcleo.
     protected InstructionCache instructionCache;    // Caché de instrucciones propia del núcleo.
     protected Registers registers;                  // Registros asociados al núcleo
     protected int coreId;                           // Identificación del núcleo actual.
+    protected int quantum;                          // El quantum que define el usuario para los nucleos
+    protected boolean finished;                     // Indica si el nucleo no tiene mas hilillos por ejecutar
 
     // Variables de utilidades
 
     protected Core otherCoreReference;              // Referencia al otro núcleo para poder acceder a sus cachés (Snooping).
     protected Instructions instructions;            // Instancia de la clase que ejecutará cada instrucción leída por el núcleo.
     protected Vector<Integer> filesBeginDirection;  // Referencia a la posición de memoria en la cual inicia cada hilillo (file) cargado a memoria de instrucciones.
-    protected Vector<Boolean> takenFiles;           // Referencia a un vector que indica, para cada hilillo, cuál núcleo lo tomó.
+    protected Vector<Integer> takenFiles;           // Referencia a un vector que indica, para cada hilillo, cuál núcleo lo tomó. (0=no tomado, 1=detenido, 2=terminado)
     protected Semaphore semaphore;                  // Semáforo para modificar la lista de hilillos tomados de forma atómica.
     protected Vector<Integer> myTakenFiles;         // Vector que guarda el ID de cada hilillo tomado por el núcleo actual.
     protected Vector<Registers> results;            // Referencia al vector de resultados finales de cada hilillo.
@@ -49,7 +55,9 @@ public abstract class Core extends Thread{
      * @param s El semáforo qque controlará el acceso al vector de hilillos tomados.
      * @param res La refencia al vector de resultados de cada hilillo para actualizar.
      */
-    protected Core(int cacheSize, InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> fbd, Vector<Boolean> tf, Semaphore s, Vector<Registers> res){
+    protected Core(int cacheSize, InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier,
+                   Vector<Integer> fbd, Vector<Integer> tf, Semaphore s, Vector<Registers> res, Queue<Registers> contexts,
+                   Queue<Integer> contextsID, CyclicBarrier cycleBarrier, int quantum){
         this.dataCache = new DataCache(cacheSize);
         this.instructionCache = new InstructionCache(cacheSize);
 
@@ -57,13 +65,17 @@ public abstract class Core extends Thread{
         this.dataMemory = dataMem;
 
         this.barrier = programBarrier;
+        this.cycleBarrier = cycleBarrier;
         this.filesBeginDirection = fbd;
         this.takenFiles = tf;
         this.semaphore = s;
         this.results = res;
+        this.quantum = quantum;
+        this.finished = false;
 
-        this.registers = new Registers();
-        this.contextsList = new Vector<>();
+        this.registers = new Registers(); //TODO por ahora
+        this.contextsList = contexts;
+        this.contextsListID = contextsID;
         this.clock = 0;
         this.instructions = new Instructions();
         this.myTakenFiles = new Vector<>();
@@ -86,6 +98,13 @@ public abstract class Core extends Thread{
      */
     public void addContext(Registers registers){
         this.contextsList.add(registers);
+    }
+
+    /**
+     * Agrega un ciclo al reloj del nucleo
+     */
+    public void addToClock(){
+        this.clock++;
     }
 
     // Métodos obtenedores
@@ -142,7 +161,7 @@ public abstract class Core extends Thread{
      * Obtiene la lista con todos los contextos guardados del núcleo
      * @return la lista de contextos del núcleo.
      */
-    public Vector<Registers> getContextsList(){
+    public Queue<Registers> getContextsList(){
         return this.contextsList;
     }
 
@@ -152,5 +171,13 @@ public abstract class Core extends Thread{
      */
     public Vector<Integer> getMyTakenFiles(){
         return this.myTakenFiles;
+    }
+
+    /**
+     * Obtiene el estado de finalizacion del nucleo
+     * @return El estado de finalizacion
+     */
+    public boolean getFinishedState(){
+        return this.finished;
     }
 }

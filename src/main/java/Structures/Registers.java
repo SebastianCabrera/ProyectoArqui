@@ -7,6 +7,7 @@ import java.util.Vector;
 public class Registers {
     private Vector<Integer> registers;
 
+    //Todo: Considerar borrar esto
     public Registers() {
         this.registers = new Vector<>(Codes.TOTAL_REGISTERS);
 

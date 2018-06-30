@@ -5,6 +5,9 @@ import Abstracts.InstructionsResources;
 import Enums.Codes;
 import Structures.DataMemory;
 
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+
 public class Load extends InstructionsResources{
 
     public Load(){
@@ -12,7 +15,7 @@ public class Load extends InstructionsResources{
     }
 
     // Retorna el dato en la palabra
-    public int LW(int memDirection, DataMemory memory, Core currentCore){
+    public int LW(int memDirection, DataMemory memory, Core currentCore, CyclicBarrier barrier){
 
         // Obtiene número de bloque
         int block = this.calculateBlock(memDirection);
@@ -102,6 +105,19 @@ public class Load extends InstructionsResources{
         }
 
         // Cargar bloque en caché propia (40 ciclos, controlar con barrera).
+        int j = 0;
+        while(j<40)
+        {
+            try {
+                barrier.await();
+                currentCore.addToClock();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (BrokenBarrierException e) {
+                e.printStackTrace();
+            }
+            j++;
+        }
         currentCore.getDataCache().setBlock(position, memory.getBlock(memDirection));
         currentCore.getDataCache().setState(position, Codes.C);
         currentCore.getDataCache().setTag(position, block);
