@@ -30,7 +30,7 @@ public class ResultsWindow extends JFrame {
     private JTable tableRegisters;
     private JComboBox comboBoxFiles;
     private JLabel lblPCValue;
-
+    private JLabel labelCyclesValue;
 
     private Program mainProgram;
 
@@ -204,7 +204,7 @@ public class ResultsWindow extends JFrame {
         lblCycles.setBounds(10, 58, 91, 14);
         panelRegistersContent.add(lblCycles);
 
-        JLabel labelCyclesValue = new JLabel("" + this.mainProgram.getClock());
+        labelCyclesValue = new JLabel("<Cycle>");
         labelCyclesValue.setBounds(83, 58, 62, 14);
         panelRegistersContent.add(labelCyclesValue);
 
@@ -310,6 +310,10 @@ public class ResultsWindow extends JFrame {
             }
         }
 
-        this.lblPCValue.setText("" + registers.get(Codes.PC));
+        this.lblPCValue.setText("" + (registers.get(Codes.PC) + Codes.INSTRUCTION_MEM_BEGIN));
+    }
+
+    public void setTotalCyclesValue(int cycles){
+        this.labelCyclesValue.setText("" + cycles);
     }
 }

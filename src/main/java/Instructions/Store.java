@@ -123,6 +123,7 @@ public class Store extends InstructionsResources{
             while(j<40)
             {
                 try {
+                    System.err.println("BARRIER STORE");
                     barrier.await();
                     currentCore.addToClock();
                 } catch (InterruptedException e) {

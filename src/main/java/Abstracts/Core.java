@@ -33,6 +33,7 @@ public abstract class Core extends Thread{
     protected int coreId;                           // Identificación del núcleo actual.
     protected int quantum;                          // El quantum que define el usuario para los nucleos
     protected boolean finished;                     // Indica si el nucleo no tiene mas hilillos por ejecutar
+    protected boolean semaphoreState;               // Auxilar que permite saber el estado del semaforo
 
     // Variables de utilidades
 
@@ -72,6 +73,7 @@ public abstract class Core extends Thread{
         this.results = res;
         this.quantum = quantum;
         this.finished = false;
+        this.semaphoreState = false;
 
         this.registers = new Registers(); //TODO por ahora
         this.contextsList = contexts;

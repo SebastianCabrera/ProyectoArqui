@@ -31,79 +31,96 @@ public class SingleCore extends Core {
         int position = 0;
 
 
-        try {
-            this.semaphore.acquire();
+            while(true) {
 
-            while(!contextsList.isEmpty()) {
+                try {
 
-                this.registers = new Registers(contextsList.poll());
-                int fileID = contextsListID.poll();
+                    this.semaphore.acquire();
 
-                if(this.takenFiles.get(fileID) != Codes.TAKEN){
-                    this.myTakenFiles.add(fileID);
+                    if(!contextsList.isEmpty()) {
 
-                    if(this.takenFiles.get(fileID) == Codes.NOT_TAKEN) {
-                        this.registers.setRegister(Codes.PC, this.filesBeginDirection.get(fileID) - Codes.INSTRUCTION_MEM_BEGIN);
-                    }
-                    this.takenFiles.set(fileID, Codes.TAKEN);
+                        this.registers = new Registers(contextsList.poll());
+                        int fileID = contextsListID.poll();
 
-                    this.semaphore.release();
 
-                    boolean cycle = true;
+                        if (this.takenFiles.get(fileID) != Codes.TAKEN) {
+                            this.myTakenFiles.add(fileID);
 
-                    while (cycle) {
+                            if (this.takenFiles.get(fileID) == Codes.NOT_TAKEN) {
+                                this.registers.setRegister(Codes.PC, this.filesBeginDirection.get(fileID) - Codes.INSTRUCTION_MEM_BEGIN);
+                            }
+                            this.takenFiles.set(fileID, Codes.TAKEN);
 
-                        if(quantum == 0)
-                        {
-                            //Copiar contexto
-                            quantum = 10;
-                            this.contextsList.add(new Registers(this.registers));
-                            this.contextsListID.add(fileID);
-                            this.takenFiles.set(fileID, Codes.IN_PROGRESS);
-                            cycle = false;
-                        }
-                        else
-                        {
-                            direction = this.registers.getRegister(Codes.PC) +Codes.INSTRUCTION_MEM_BEGIN;
-                            block = this.calculateInstructionBlock(this.registers.getRegister(Codes.PC));
-                            word = this.calculateWord(direction);
-                            position = block % 4;
+                            this.semaphore.release();
 
-                            if (this.instructionCache.getTag(position) != block) {
-                                this.instructionCache.setBlock(position, this.instructionMemory.getBlock(direction));
-                                this.instructionCache.setTag(position, block);
+                            boolean cycle = true;
+
+                            while (cycle) {
+
+                                if (quantum == 0) {
+                                    //Copiar contexto
+
+                                    try{
+                                        semaphore.acquire();
+
+                                        quantum = 10;
+                                        this.contextsList.add(new Registers(this.registers));
+                                        this.contextsListID.add(fileID);
+                                        this.takenFiles.set(fileID, Codes.IN_PROGRESS);
+
+                                        semaphore.release();
+                                    }catch (InterruptedException e){
+                                        e.printStackTrace();
+                                    }
+                                    cycle = false;
+                                } else {
+                                    direction = this.registers.getRegister(Codes.PC) + Codes.INSTRUCTION_MEM_BEGIN;
+                                    block = this.calculateInstructionBlock(this.registers.getRegister(Codes.PC));
+                                    word = this.calculateWord(direction);
+                                    position = block % 4;
+
+                                    if (this.instructionCache.getTag(position) != block) {
+                                        this.instructionCache.setBlock(position, this.instructionMemory.getBlock(direction));
+                                        this.instructionCache.setTag(position, block);
+                                    }
+
+                                    Vector<Integer> instruction = this.instructionCache.getWord(position, word);
+
+                                    // Freno por ahora
+                                    if (instruction.toString().equals("[63, 0, 0, 0]")) {
+                                        cycle = false;
+                                    }
+
+                                    System.out.println(instruction);
+                                    //Se ejecuta una instruccion del hilillo
+                                    this.instructions.decode(this.registers, instruction, this.dataMemory, this, this.cycleBarrier, this.clock);
+                                    //Pasa un ciclo, se toma en cuenta para el quantum
+                                    this.quantum--;
+
+                                    System.out.println(block);
+                                }
+                                try {
+                                    System.err.println("BARRIER INSTRUCTION");
+                                    cycleBarrier.await();
+                                    this.clock++;
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                } catch (BrokenBarrierException e) {
+                                    e.printStackTrace();
+                                }
                             }
 
-                            Vector<Integer> instruction = this.instructionCache.getWord(position, word);
+                            this.results.set(fileID, this.registers);
 
-                            // Freno por ahora
-                            if (instruction.toString().equals("[63, 0, 0, 0]")) {
-                                cycle = false;
-                            }
-
-                            System.out.println(instruction);
-                            //Se ejecuta una instruccion del hilillo
-                            this.instructions.decode(this.registers, instruction, this.dataMemory, this, this.cycleBarrier, this.clock);
-                            //Pasa un ciclo, se toma en cuenta para el quantum
-                            this.quantum--;
-
-                            System.out.println(block);
+                        } else {
+                            this.semaphore.release();
                         }
-                        try {
-                            cycleBarrier.await();
-                            this.clock++;
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        } catch (BrokenBarrierException e) {
-                            e.printStackTrace();
-                        }
+                    }else{
+                        this.semaphore.release();
+                        break;
                     }
-
-                    this.results.set(fileID, this.registers);
-
-                }
-                else{
-                    this.semaphore.release();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
 
 
@@ -112,26 +129,20 @@ public class SingleCore extends Core {
 
             this.finished = true;
 
-            while(true){
-                if(!this.otherCoreReference.getFinishedState()){
-                    try {
-                        cycleBarrier.await();
-                        this.clock++;
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (BrokenBarrierException e) {
-                        e.printStackTrace();
-                    }
-                }else{
-                    break;
+            do {
+                try {
+                    System.err.println("BARRIER FINIDH");
+                    cycleBarrier.await();
+                    this.clock++;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (BrokenBarrierException e) {
+                    e.printStackTrace();
                 }
-            }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+            }while (!this.otherCoreReference.getFinishedState());
 
         try {
+            System.err.println("BARRIER GENERAL");
             barrier.await();
         } catch (InterruptedException e) {
             e.printStackTrace();

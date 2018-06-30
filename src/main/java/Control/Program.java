@@ -131,6 +131,7 @@ public class Program {
         thread2.start();
 
         try {
+            System.err.println("BARRIER GENERAL (PROGRAM)");
             barrier.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -209,6 +210,8 @@ public class Program {
         }else{
             this.clock = this.core0.getClock();
         }
+
+        rw.setTotalCyclesValue(this.clock);
     }
 
     public Vector<Integer> getRegistersByFileID(int fileID){
