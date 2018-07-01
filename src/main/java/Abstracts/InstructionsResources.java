@@ -26,7 +26,7 @@ public abstract class InstructionsResources {
     protected int calculateCachePosition(int blockNumber, int coreId){
         switch (coreId){
             case Codes.CORE_0:
-                return (blockNumber % Codes.BLOCKS_IN_CACHE_0);
+                return (blockNumber % Codes.BLOCKS_IN_CACHE_1);
             default:
                 return (blockNumber % Codes.BLOCKS_IN_CACHE_1);
         }

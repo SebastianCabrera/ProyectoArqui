@@ -109,7 +109,7 @@ public class Load extends InstructionsResources{
         while(j<40)
         {
             try {
-                System.err.println("BARRIER LOAD");
+                System.err.println("CORE " + currentCore.getCoreId() + ": BARRIER LOAD");
                 barrier.await();
                 currentCore.addToClock();
             } catch (InterruptedException e) {

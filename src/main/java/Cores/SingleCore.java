@@ -18,9 +18,9 @@ import java.util.concurrent.Semaphore;
 public class SingleCore extends Core {
     public SingleCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> fbd,
                       Vector<Integer> ft, Semaphore s, Vector<Registers> res, int quantum, Queue<Registers> contextsList,
-                      Queue<Integer> contextsListID, CyclicBarrier cycleBarrier){
+                      Queue<Integer> contextsListID, CyclicBarrier cycleBarrier, int id){
         super(Codes.BLOCKS_IN_CACHE_1, insMem, dataMem, programBarrier, fbd, ft, s, res, contextsList, contextsListID, cycleBarrier, quantum);
-        this.coreId = Codes.CORE_1;
+        this.coreId = id;
     }
 
     @Override
@@ -100,7 +100,7 @@ public class SingleCore extends Core {
                                     System.out.println(block);
                                 }
                                 try {
-                                    System.err.println("BARRIER INSTRUCTION");
+                                    System.err.println("CORE " + this.coreId + ": BARRIER INSTRUCTION");
                                     cycleBarrier.await();
                                     this.clock++;
                                 } catch (InterruptedException e) {
@@ -122,27 +122,26 @@ public class SingleCore extends Core {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
-
-
             } // Fin del while
 
             this.finished = true;
 
             do {
                 try {
-                    System.err.println("BARRIER FINIDH");
+                    System.err.println("CORE " + this.coreId + ": BARRIER FINISH");
                     cycleBarrier.await();
                     this.clock++;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (BrokenBarrierException e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
+                    System.err.println("Barrera reiniciada para que los cores terminen.");
                 }
             }while (!this.otherCoreReference.getFinishedState());
 
         try {
-            System.err.println("BARRIER GENERAL");
+            this.cycleBarrier.reset();
+            System.err.println("CORE " + this.coreId + ": BARRIER GENERAL");
             barrier.await();
         } catch (InterruptedException e) {
             e.printStackTrace();

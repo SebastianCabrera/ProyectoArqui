@@ -115,10 +115,10 @@ public class Program {
 
         core0 = new SingleCore( this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection,
                                 this.takenFiles, this.updateFileState, this.results, this.quantum, this.contextsList,
-                                this.contextsListID, this.cycleBarrier);
+                                this.contextsListID, this.cycleBarrier, 0);
         core1 = new SingleCore( this.instructionMemory, this.dataMemory, this.barrier, this.filesBeginDirection,
                                 this.takenFiles, this.updateFileState, this.results, this.quantum, this.contextsList,
-                                this.contextsListID, this.cycleBarrier);
+                                this.contextsListID, this.cycleBarrier, 1);
 
         core0.setOtherCoreReference(core1);
         core1.setOtherCoreReference(core0);
