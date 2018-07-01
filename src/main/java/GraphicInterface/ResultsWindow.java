@@ -1,5 +1,6 @@
 package GraphicInterface;
 
+import Abstracts.Core;
 import Control.Program;
 import Enums.Codes;
 
@@ -315,5 +316,30 @@ public class ResultsWindow extends JFrame {
 
     public void setTotalCyclesValue(int cycles){
         this.labelCyclesValue.setText("" + cycles);
+    }
+
+    public void fillCacheTable(Vector<Vector<Integer>> dataCache, Vector<Integer> tags, Vector<Character> states, int core){
+        JTable table;
+
+        switch(core){
+            case 0:
+                table = this.tableCache0;
+                break;
+            default:
+                table = this.tableCache1;
+                break;
+        }
+
+        for(int i = 0; i < 4; i++){
+            for(int j = 0; j < 4; j++){
+                table.setValueAt("" + dataCache.get(i).get(j), i, j);
+            }
+        }
+
+        for(int i = 0; i < 4; i++){
+            table.setValueAt("" + tags.get(i), 4, i);
+            table.setValueAt("" + states.get(i), 5, i);
+        }
+
     }
 }

@@ -212,6 +212,8 @@ public class Program {
         }
 
         rw.setTotalCyclesValue(this.clock);
+
+        rw.fillCacheTable(this.core0.getDataCache().getCache(), this.core0.getDataCache().getTags(), this.core0.getDataCache().getStates(), this.core0.getCoreId());
     }
 
     public Vector<Integer> getRegistersByFileID(int fileID){
