@@ -26,14 +26,4 @@ public abstract class Memory {
             memory.add(Codes.EMPTY_MEMORY);
         }
     }
-
-    // Métodos dedicados a la impresión de datos
-
-    /**
-     * Obtiene la memoria como vector de enteros.
-     * @return La memoria actual.
-     */
-    public Vector<Integer> getMemory(){
-        return this.memory;
-    }
 }

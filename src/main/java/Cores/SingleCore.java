@@ -1,10 +1,8 @@
 package Cores;
 
-import Abstracts.Core;
 import Enums.Codes;
-import Structures.DataMemory;
-import Structures.InstructionMemory;
-import Structures.Registers;
+import Instructions.Instructions;
+import Structures.*;
 
 import java.util.Queue;
 import java.util.Vector;
@@ -13,134 +11,261 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Semaphore;
 
 /**
- * Created by J.A Rodríguez on 16/06/2018.
+ * Clase que representa a un núcleo con capacidad para un solo hilillo. Este ejecutará las instrucciones.
  */
-public class SingleCore extends Core {
-    public SingleCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> fbd,
-                      Vector<Integer> ft, Semaphore s, Vector<Registers> res, int quantum, Queue<Registers> contextsList,
-                      Queue<Integer> contextsListID, CyclicBarrier cycleBarrier, int id){
-        super(insMem, dataMem, programBarrier, fbd, ft, s, res, contextsList, contextsListID, cycleBarrier, quantum, id);
+public class SingleCore extends Thread {
+
+    // Variables compartidas
+
+    private DataMemory dataMemory;                // Referencia a la memoria de datos compartida.
+    private InstructionMemory instructionMemory;  // Referencia a la memoria de instrucciones compartida.
+    private int clock;                            // Reloj del núcleo. Todos los núcleos deben mantenerlo igual en cada iteración.
+    private CyclicBarrier generalBarrier;         // Referencia a la barrera que sincroniza a las impresiones.
+    private CyclicBarrier cycleBarrier;           // Referencia a la barrera que sincroniza a los núcleos.
+    private Queue<Registers> contextsList;        // Referencia a la cola de contextos del programa.
+    private Queue<Integer> contextsListID;        // Referencia a la cola que indica el ID del hilillo que esta en la cola de contextos en cierta posicion.
+
+    // Variables propias
+
+    private DataCache dataCache;                  // Caché de datos propia del núcleo.
+    private InstructionCache instructionCache;    // Caché de instrucciones propia del núcleo.
+    private Registers registers;                  // Registros asociados al núcleo
+    private int coreId;                           // Identificación del núcleo actual.
+    private int quantum;                          // El quantum que define el usuario para los nucleos
+    private boolean finished;                     // Indica si el nucleo no tiene mas hilillos por ejecutar
+    private boolean semaphoreState;               // Auxilar que permite saber el estado del semaforo
+
+    // Variables de utilidades
+
+    private SingleCore otherCoreReference;        // Referencia al otro núcleo para poder acceder a sus cachés (Snooping).
+    private Instructions instructions;            // Instancia de la clase que ejecutará cada instrucción leída por el núcleo.
+    private Vector<Integer> filesBeginDirection;  // Referencia a la posición de memoria en la cual inicia cada hilillo (file) cargado a memoria de instrucciones.
+    private Vector<Integer> takenFiles;           // Referencia a un vector que indica, para cada hilillo, cuál núcleo lo tomó. (0=no tomado, 1=detenido, 2=terminado)
+    private Semaphore filesStatusSemaphore;       // Semáforo para modificar la lista de hilillos tomados de forma atómica.
+    private Vector<Integer> myTakenFiles;         // Vector que guarda el ID de cada hilillo tomado por el núcleo actual.
+    private Vector<Registers> results;            // Referencia al vector de resultados finales de cada hilillo.
+
+    /**
+     * Constructor de los núcleos. Utiliza todas las referencias y otras variables necesarias para
+     * su funcionamiento
+     * @param insMem La referencia a la memoria de instrucciones del programa.
+     * @param dataMem La referencia a la memotia de datos del programa.
+     * @param programBarrier La referencia a la barrera que sincroniza los núcleos.
+     * @param beginDirections La referencia al vector que indica la posición de inicio de cada hilillo.
+     * @param taken La referencia al vector que indica cuáles hilillos ya fueron o no tomados por algún núcleo.
+     * @param semaphore El semáforo qque controlará el acceso al vector de hilillos tomados.
+     * @param resultsRegisters La refencia al vector de resultados de cada hilillo para actualizar.
+     * @param contexts La referencia a la cola de contextos del programa.
+     * @param contextsID La referencia a los ID de cada hilillo según su posición.
+     * @param cycleBarrier La referencia a la barrera que controla los ciclos de cada núcleo.
+     * @param quantum El quantum que se le dará a cada núcleo.
+     * @param id El identificador del núcleo.
+     */
+    public SingleCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier,
+                   Vector<Integer> beginDirections, Vector<Integer> taken, Semaphore semaphore, Vector<Registers> resultsRegisters, Queue<Registers> contexts,
+                   Queue<Integer> contextsID, CyclicBarrier cycleBarrier, int quantum, int id){
+
+        this.coreId = id;
+
+        int cacheSize;
+
+        // El tamaño de la caché depende depende de cuál es el core creado.
+        if(id == Codes.CORE_0) {
+            cacheSize = Codes.BLOCKS_IN_CACHE_0;
+        }else{
+            cacheSize = Codes.BLOCKS_IN_CACHE_1;
+        }
+
+        this.dataCache = new DataCache(cacheSize);
+        this.instructionCache = new InstructionCache(cacheSize);
+
+        this.instructionMemory = insMem;
+        this.dataMemory = dataMem;
+
+        this.generalBarrier = programBarrier;
+        this.cycleBarrier = cycleBarrier;
+        this.filesBeginDirection = beginDirections;
+        this.takenFiles = taken;
+        this.filesStatusSemaphore = semaphore;
+        this.results = resultsRegisters;
+        this.quantum = quantum;
+        this.finished = false;
+        this.semaphoreState = false;
+
+        this.registers = new Registers();
+        this.contextsList = contexts;
+        this.contextsListID = contextsID;
+        this.clock = 0;
+        this.instructions = new Instructions();
+        this.myTakenFiles = new Vector<>();
     }
 
     @Override
+    /**
+     * Método que ejecuta cada thread. En este caso permite al núcleo ejecutar cada instrucción encontrada.
+     */
     public void run(){
-        int block = 0;
-        int word = 0;
-        int direction = 0;
-        int position = 0;
+        int block;      // Bloque de memoria de instrucciones
+        int word;       // Palabra de memoria de instrucciones
+        int direction;  // Dirección de memoria de instrucciones
+        int position;   // Posición de caché de instrucciones
 
+        // Ejecuta el cilco principal de obtención de contextos disponibles mientras siga habiendo contextos
+        while(true) {
 
-            while(true) {
+            try {
+                // Adquiere el semáforo para poder revisar la cola de contextos de forma atómica y evitar
+                // que el otro núcleo cambie el contenido de la cola mientras este sigue necesitando el contenido.
+                this.filesStatusSemaphore.acquire();
 
-                try {
+                // Mientras haya contextos.
+                if(!contextsList.isEmpty()) {
 
-                    this.semaphore.acquire();
+                    // Se copia el primer contexto a los registros del núcleo.
+                    this.registers = new Registers(contextsList.poll());
 
-                    if(!contextsList.isEmpty()) {
+                    // Se identifica a cuál hilillo corresponde el contexto.
+                    int fileID = contextsListID.poll();
 
-                        this.registers = new Registers(contextsList.poll());
-                        int fileID = contextsListID.poll();
+                    // Se agrega el hilillo actual como tomado por el núcleo actual.
+                    this.myTakenFiles.add(fileID);
 
-
-                        if (this.takenFiles.get(fileID) != Codes.TAKEN) {
-                            this.myTakenFiles.add(fileID);
-
-                            if (this.takenFiles.get(fileID) == Codes.NOT_TAKEN) {
-                                this.registers.setRegister(Codes.PC, this.filesBeginDirection.get(fileID) - Codes.INSTRUCTION_MEM_BEGIN);
-                            }
-                            this.takenFiles.set(fileID, Codes.TAKEN);
-
-                            this.semaphore.release();
-
-                            boolean cycle = true;
-
-                            while (cycle) {
-
-                                if (quantum == 0) {
-                                    //Copiar contexto
-
-                                    try{
-                                        semaphore.acquire();
-
-                                        quantum = 10;
-                                        this.contextsList.add(new Registers(this.registers));
-                                        this.contextsListID.add(fileID);
-                                        this.takenFiles.set(fileID, Codes.IN_PROGRESS);
-
-                                        semaphore.release();
-                                    }catch (InterruptedException e){
-                                        e.printStackTrace();
-                                    }
-                                    cycle = false;
-                                } else {
-                                    direction = this.registers.getRegister(Codes.PC) + Codes.INSTRUCTION_MEM_BEGIN;
-                                    block = this.calculateInstructionBlock(this.registers.getRegister(Codes.PC));
-                                    word = this.calculateWord(direction);
-                                    position = block % 4;
-
-                                    if (this.instructionCache.getTag(position) != block) {
-                                        this.instructionCache.setBlock(position, this.instructionMemory.getBlock(this.getBlockBegin(this.getRealInstructionDirection(direction))));
-                                        this.instructionCache.setTag(position, block);
-                                    }
-
-                                    Vector<Integer> instruction = this.instructionCache.getWord(position, word);
-
-                                    // Freno por ahora
-                                    if (instruction.toString().equals("[63, 0, 0, 0]")) {
-                                        cycle = false;
-                                    }
-
-                                    System.out.println(instruction);
-                                    //Se ejecuta una instruccion del hilillo
-                                    this.instructions.decode(this.registers, instruction, this.dataMemory, this, this.cycleBarrier, this.clock);
-                                    //Pasa un ciclo, se toma en cuenta para el quantum
-                                    this.quantum--;
-
-                                    System.out.println(block);
-                                }
-                                try {
-                                    System.err.println("CORE " + this.coreId + ": BARRIER INSTRUCTION");
-                                    cycleBarrier.await();
-                                    this.clock++;
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                } catch (BrokenBarrierException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-
-                            this.results.set(fileID, this.registers);
-
-                        } else {
-                            this.semaphore.release();
-                        }
-                    }else{
-                        this.semaphore.release();
-                        break;
+                    // Si el hilillo actual no había sido tomado nunca, significa que su ejecución no había comenzado jamás,
+                    // por lo cual se coloca el PC en la dirección inicial del hilillo. Sino, se usa el último PC guardado.
+                    if (this.takenFiles.get(fileID) == Codes.NOT_TAKEN) {
+                        this.registers.setRegister(Codes.PC, this.filesBeginDirection.get(fileID) - Codes.INSTRUCTION_MEM_BEGIN);
                     }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } // Fin del while
 
-            this.finished = true;
+                    // Libera el semáforo ya que no necesita revisar más.
+                    this.filesStatusSemaphore.release();
 
-            do {
-                try {
-                    System.err.println("CORE " + this.coreId + ": BARRIER FINISH");
-                    cycleBarrier.await();
-                    this.clock++;
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (BrokenBarrierException e) {
-                    //e.printStackTrace();
-                    System.err.println("Barrera reiniciada para que los cores terminen.");
+                    boolean executeCore = true;
+
+                    boolean instructionsFailure = false;
+
+                    // Se ejecuta el núcleo para ejecutar instrucciones.
+                    while (executeCore) {
+
+                        // Si el quantum llega a 0, se guarda el contexto del hilillo para obtener otro.
+                        if (quantum == 0) {
+                            try{
+                                // Se toma el semáforo para volver a modificar la cola y estados.
+                                filesStatusSemaphore.acquire();
+
+                                // TODO Quantum del usuario
+                                quantum = 10;
+
+                                // Se agregan los registros al final de la cola de contextos junto con su ID
+                                this.contextsList.add(new Registers(this.registers));
+                                this.contextsListID.add(fileID);
+
+                                // El hilillo tiene el estado "en progreso" para evitar que la próxima vez que sea tomado
+                                // se comienze desde la primera dirección de memoria del mismo.
+                                this.takenFiles.set(fileID, Codes.IN_PROGRESS);
+
+                                filesStatusSemaphore.release();
+                            }catch (InterruptedException e){
+                                e.printStackTrace();
+                            }
+
+                            // Se acaba la ejecución del hilillo.
+                            executeCore = false;
+
+                        // En caso de que el quantum no se haya acabado.
+                        } else {
+
+                            // Se calcula la dirección, bloque, palabra de instrucciones y la posición de caché.
+                            direction = (this.registers.getRegister(Codes.PC) + Codes.INSTRUCTION_MEM_BEGIN);
+                            block = this.calculateInstructionBlock(this.registers.getRegister(Codes.PC));
+                            word = this.calculateWord(direction);
+                            position = (block % Codes.DATA_WORD_BYTES);
+
+                            // Si la etiqueta del bloque de instrucciones no es igual al bloque calculado, es un fallo
+                            // de caché
+                            if (this.instructionCache.getTag(position) != block) {
+
+                                // Si no se consigue el bus, se intenta hasta el próximo ciclo.
+                                if(!(this.instructionMemory.getMemoryBusLock()).tryLock()){
+                                    instructionsFailure = true;
+                                }else {
+
+                                    // Se carga el bloque en caché y se libera el bus.
+                                    this.instructionCache.setBlock(position, this.instructionMemory.getBlock(this.getBlockBegin(this.getRealInstructionDirection(direction))));
+                                    this.instructionCache.setTag(position, block);
+
+                                    this.instructionMemory.getMemoryBusLock().unlock();
+                                }
+                            }
+
+                            // En caso de no haber resuelto el fallo
+                            if(!instructionsFailure) {
+
+                                // Instrucción
+                                Vector<Integer> instruction = this.instructionCache.getWord(position, word);
+
+                                // TODO Freno por ahora
+                                if (instruction.toString().equals("[63, 0, 0, 0]")) {
+                                    executeCore = false;
+                                }
+
+                                //Se ejecuta la instruccion del hilillo
+                                this.instructions.decode(this.registers, instruction, this.dataMemory, this, this.cycleBarrier);
+
+                                //Pasa un ciclo, se toma en cuenta para el quantum
+                                this.quantum--;
+                            }else{
+                                instructionsFailure = false;
+                            }
+                        }
+
+                        // Espera a que el otro núcleo también ejecute el ciclo para avanzar el reloj a la vez.
+                        try {
+                            System.err.println("CORE " + this.coreId + ": BARRIER INSTRUCTION");
+                            cycleBarrier.await();
+                            this.clock++;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (BrokenBarrierException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    // Cuando se acaba la lectura del hilillo, se almacenan sus resultados
+                    this.results.set(fileID, this.registers);
+
+                }else{
+                    this.filesStatusSemaphore.release();
+                    break;
                 }
-            }while (!this.otherCoreReference.getFinishedState());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        this.finished = true;
+
+        // Si el otro núcleo no ha terminado, este espera para que ambos terminen su ejecución total a la vez y además
+        // avanza el reloj por cada instrucción ejecutada por el otro núcleo.
+        do {
+            try {
+                System.err.println("CORE " + this.coreId + ": BARRIER FINISH");
+                cycleBarrier.await();
+                this.clock++;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (BrokenBarrierException e) {
+                System.out.println("Barrera reiniciada para que los cores terminen.");
+            }
+        }while (!this.otherCoreReference.getFinishedState());
 
         try {
+            // Debido una posible desincronización al final de la ejecución, se desactiva la barrera, pues para este punto
+            // ya ambos núcleos debieron haber terminado.
             this.cycleBarrier.reset();
             System.err.println("CORE " + this.coreId + ": BARRIER GENERAL");
+
+            // Espera a que el otro núcleo llegue a esta barrera para acabar el programa juntos y que el hilo principal
+            // pueda imprimir resultados.
             this.generalBarrier.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -149,11 +274,190 @@ public class SingleCore extends Core {
         }
     }
 
-    private int calculateInstructionBlock(int direction){
-        return direction / 16;
+    // Metodos modificadores
+
+    /**
+     * Modifica la referencia al otro núcleo que posee el núcleo actual
+     * @param reference El otro núcleo a colocar como referencia.
+     */
+    public void setOtherCoreReference(SingleCore reference){
+        this.otherCoreReference = reference;
     }
 
+    // TODO este método no debería obtener registros como parámetros, se supone que voy a guardar mis propios registros.
+    /**
+     * Agrega los registros actuales a la lista de contextos
+     * @param registers // TODO
+     */
+    public void addContext(Registers registers){
+        this.contextsList.add(registers);
+    }
+
+    /**
+     * Agrega un ciclo al reloj del núcleo
+     */
+    public void addToClock(){
+        this.clock++;
+    }
+
+    // Métodos obtenedores
+
+    /**
+     * Obtiene el reloj actual del núcleo
+     * @return El reloj del núcleo.
+     */
+    public int getClock(){
+        return this.clock;
+    }
+
+    /**
+     * Obtiene una referencia a la caché de datos del núcleo.
+     * @return La caché de datos del núcleo.
+     */
+    public DataCache getDataCache(){
+        return this.dataCache;
+    }
+
+    /**
+     * Obtiene una referencia a la caché de instrucciones del núcleo.
+     * @return La caché de instrucciones del núcleo.
+     */
+    public InstructionCache getInstructionCache(){
+        return this.instructionCache;
+    }
+
+    /**
+     * Obtiene el ID del núcleo actual.
+     * @return El ID del núcleo.
+     */
+    public int getCoreId(){
+        return this.coreId;
+    }
+
+    /**
+     * Obtiene la referencia al otro núcleo que posee el núcleo actual.
+     * @return La referencia al otro núcleo.
+     */
+    public SingleCore getOtherCoreReference(){
+        return this.otherCoreReference;
+    }
+
+    /**
+     * Obtiene una referencia a los registros del núcleo.
+     * @return Los registros del núcleo.
+     */
+    public Registers getRegisters(){
+        return this.registers;
+    }
+
+    /**
+     * Obtiene la lista con todos los contextos guardados del núcleo
+     * @return la lista de contextos del núcleo.
+     */
+    public Queue<Registers> getContextsList(){
+        return this.contextsList;
+    }
+
+    /**
+     * Obtiene la lista de IDs de hilillos que fueron tomados por el núcleo
+     * @return la lista IDs de hilillos
+     */
+    public Vector<Integer> getMyTakenFiles(){
+        return this.myTakenFiles;
+    }
+
+    /**
+     * Obtiene el estado de finalización del núcleo
+     * @return El estado de finalización
+     */
+    public boolean getFinishedState(){
+        return this.finished;
+    }
+
+    // Métodos asociados a cálculos
+
+    /**
+     * Calcula el número de bloque al cual pertenece una dirección de la memoria de datos.
+     * @param memDirection Dirección de memoria inicial del bloque.
+     * @return La posición en la cual debería ir el bloque.
+     */
+    public int calculateDataBlockNumber(int memDirection){
+        return memDirection / Codes.DATA_BLOCK_BYTES;
+    }
+
+    /**
+     * Calcula una palabra específica dentro de un bloque de datos, basada en la dirección de memoria.
+     * @param memDirection Dirección de memoria en la cual se encuentra la palabra
+     * @return El número de palabra dentro del bloque
+     */
+    public int calculateDataWordPosition(int memDirection){
+        return (memDirection % Codes.DATA_BLOCK_BYTES) / Codes.DATA_WORD_BYTES;
+    }
+
+    /**
+     * Calcula la posición de la caché de datos en la cual debería estar un bloque.
+     * @param blockNumber El número de bloque del cual se quiere obtener su posición en caché.
+     * @param coreId El ID del núcleo para saber cuántas posiciones tiene la caché.
+     * @return La posición en caché en la cual se debería guardar el bloque.
+     */
+    public int calculateCachePosition(int blockNumber, int coreId){
+        switch (coreId){
+            case Codes.CORE_0:
+                return (blockNumber % Codes.BLOCKS_IN_CACHE_0);
+            default:
+                return (blockNumber % Codes.BLOCKS_IN_CACHE_1);
+        }
+    }
+
+    /**
+     * Calcula y obtiene la dirección inicial de un bloque en cualquiera de las 2 memorias con base en una dirección dentro
+     * de ese bloque
+     * @param direction La dirección perteneciente a un bloque
+     * @return La dirección inicial del bloque
+     */
+    public int getBlockBegin(int direction){
+        if(direction % Codes.BLOCK_BYTES != 0){
+            return direction - ((direction % Codes.BLOCK_BYTES));
+        }else{
+            return direction;
+        }
+    }
+
+    /**
+     * Obtiene una posición del vector que representa a la memoria de datos, esto porque las direcciones van de 4 en 4,
+     * pero el vector es continuo.
+     * @param direction Dirección de memoria real
+     * @return Posición en el vector de la memoria de datos
+     */
+    public int getMemoryDirectionPosition(int direction){
+        return direction / Codes.DATA_WORD_BYTES;
+    }
+
+    /**
+     * Obtiene una dirección de memoria a la cual se le resta la posición inicial de la memoria de instrucciones. Esto
+     * porque la memoria de instrucciones comienza en la dirección 384, pero el vector que la represente inicia en 0.
+     * @param virtualDirection Dirección virtual de la memoria.
+     * @return La posición real en la memoria de instrucciones.
+     */
+    protected int getRealInstructionDirection(int virtualDirection){
+        return virtualDirection - Codes.INSTRUCTION_MEM_BEGIN;
+    }
+
+    /**
+     * Calcula un número de bloque de instrucciones basado en su dirección de memoria
+     * @param direction La dirección del bloque
+     * @return El número de bloque
+     */
+    private int calculateInstructionBlock(int direction){
+        return direction / Codes.BLOCK_BYTES;
+    }
+
+    /**
+     * Calcula un número de palabra de instrucciones basada en su dirección de memoria
+     * @param direction La dirección del bloque
+     * @return El número de palabra
+     */
     private int calculateWord(int direction){
-        return (direction % 16) / 4;
+        return (direction % Codes.BLOCK_BYTES) / Codes.INSTRUCTIONS_WORD_SIZE;
     }
 }

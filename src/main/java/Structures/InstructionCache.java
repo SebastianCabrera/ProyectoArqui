@@ -5,15 +5,22 @@ import Enums.Codes;
 
 import java.util.Vector;
 
+/**
+ * Clase que representa a la memoria caché de instrucciones.
+ */
 public class InstructionCache extends Cache{
 
-    private Vector<Vector<Vector<Integer>>> cache;
+    private Vector<Vector<Vector<Integer>>> cache;  // La estructura de la caché. El vector externo son las columnas,
+                                                    // el siguiente las palabras, y el interno los 4 enteros de cada palabra
 
+    /**
+     * Constructor de la caché
+     * @param totalBlocks Tamaño de la caché en columnas.
+     */
     public InstructionCache(int totalBlocks) {
 
         this.cache = new Vector<>(totalBlocks);
         this.tags = new Vector<>(totalBlocks);
-        this.states = new Vector<>(totalBlocks);
 
         // Inicializa la caché
         for(int i = 0; i < totalBlocks; i++){
@@ -34,33 +41,50 @@ public class InstructionCache extends Cache{
 
             // Inicializa etiquetas y estados
             this.tags.add(Codes.EMPTY_BLOCK);
-            this.states.add(Codes.I);
 
             this.cache.add(block);
         }
     }
 
-    public void setBlock(int numBlock, Vector<Vector<Integer>> block){
-        this.cache.set(numBlock, block);
+    // Métodos modificadores
+
+    /**
+     * Carga un bloque en la caché
+     * @param position Posición en la cual se encuentra el bloque.
+     * @param block Bloque a almacenar
+     */
+    public void setBlock(int position, Vector<Vector<Integer>> block){
+        this.cache.set(position, block);
     }
 
-    public Vector<Vector<Integer>> getBlock(int numBlock){
-        return this.cache.get(numBlock);
+    /**
+     * Almacena una palabra en caché
+     * @param position Posición en la cual se encuentra el bloque
+     * @param numWord Posición del bloque en el cual se encuentra la palabra
+     * @param word La palabra a almacenar
+     */
+    public void setWord(int position, int numWord, Vector<Integer> word){
+        this.cache.get(position).set(numWord, word);
     }
 
-    public void setWord(int numBlock, int numWord, Vector<Integer> word){
-        this.cache.get(numBlock).set(numWord, word);
+    // Métodos obtenedores
+
+    /**
+     * Obtiene un bloque de la caché
+     * @param position Posición en la cual se encuentra el bloque
+     * @return Bloque de la caché
+     */
+    public Vector<Vector<Integer>> getBlock(int position){
+        return this.cache.get(position);
     }
 
-    public Vector<Integer> getWord(int numBlock, int numWord){
-        return this.cache.get(numBlock).get(numWord);
-    }
-
-    public Vector<Vector<Vector<Integer>>> getCache(){
-        return this.cache;
-    }
-
-    public void setTag(int position, int tag){
-        this.tags.set(position, tag);
+    /**
+     * Obtiene una palabra de la caché
+     * @param position Posición en la cual se encuentra el bloque
+     * @param numWord Posición del bloque en el cual se encuentra la palabra
+     * @return La palabra del bloque
+     */
+    public Vector<Integer> getWord(int position, int numWord){
+        return this.cache.get(position).get(numWord);
     }
 }

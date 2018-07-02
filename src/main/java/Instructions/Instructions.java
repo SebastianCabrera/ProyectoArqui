@@ -1,6 +1,6 @@
 package Instructions;
 
-import Abstracts.Core;
+import Cores.SingleCore;
 import Enums.Codes;
 import Structures.DataMemory;
 import Structures.Registers;
@@ -8,142 +8,191 @@ import Structures.Registers;
 import java.util.Vector;
 import java.util.concurrent.CyclicBarrier;
 
-// IR: Instruccion Actual
-
-// Doble barrera: por el doble hilillo, cuando se espera que un hilo acomode (contexto, subir y demas), los otros no
-// estan haciendo nada. El SO se encarga de esto.
-
-// En tal ciclo todos hicieron lo que les tocara. Antes de comenzar el otro (segunda barrera): si a alguien
-// se le acaba el quantum se sube el siguiente, si da fallo se detiene, y una vez se hizo toda esa revision
-// (de parte de solo un hilo o cada uno) en la primera barrera, luego de la segunda ya ejecutan el ciclo normal.
-// Seria en medio de ambas barreras. No es obligatorio.
-
+/**
+ * Clase que contiene todas las instrucciones para ser ejecutadas por el núcleo
+ */
 public class Instructions {
 
-    private Load load;
-    private Store store;
+    private Load load;      // Instancia de la instrucción Load
+    private Store store;    // Instancia de la instrucción Store
 
+    /**
+     * Constructor de la clase de instrucciones.
+     */
     public Instructions(){
         this.load = new Load();
         this.store = new Store();
     }
 
-    public void decode(Registers registers, Vector<Integer> word, DataMemory memory, Core currentCore, CyclicBarrier barrier, int clock)
+    /**
+     * Método que permite decodificar y ejecutar una instrucción
+     * @param registers Los referencia a los registros en los cuales se realizará la opreación
+     * @param instruction La palabra de instrucciones a ejecutar
+     * @param memory La referencia a la memoria de datos del sistema
+     * @param currentCore La referencia al núcleo que ejecuta la instrucción
+     * @param barrier La referencia a la barrera de los ciclos para ser eventualmente usada por Load y Store
+     */
+    public void decode(Registers registers, Vector<Integer> instruction, DataMemory memory, SingleCore currentCore, CyclicBarrier barrier)
     {
+        // Valor de retorno de Load o Store
         int value;
-        switch(word.get(0)) {
-            case 8:
-                DADDI(registers, word.get(2), word.get(1), word.get(3));
+
+        switch(instruction.get(0)) {
+            case Codes.DADDI:
+                DADDI(registers, instruction.get(2), instruction.get(1), instruction.get(3));
                 break;
-            case 32:
-                DADD(registers, word.get(1), word.get(2), word.get(3));
+            case Codes.DADD:
+                DADD(registers, instruction.get(1), instruction.get(2), instruction.get(3));
                 break;
-            case 34:
-                DSUB(registers, word.get(1), word.get(2), word.get(3));
+            case Codes.DSUB:
+                DSUB(registers, instruction.get(1), instruction.get(2), instruction.get(3));
                 break;
-            case 12:
-                DMUL(registers, word.get(1), word.get(2), word.get(3));
+            case Codes.DMUL:
+                DMUL(registers, instruction.get(1), instruction.get(2), instruction.get(3));
                 break;
-            case 14:
-                DDIV(registers, word.get(1), word.get(2), word.get(3));
+            case Codes.DDIV:
+                DDIV(registers, instruction.get(1), instruction.get(2), instruction.get(3));
                 break;
-            case 4:
-                BEQZ(registers, word.get(1), word.get(3));
+            case Codes.BEQZ:
+                BEQZ(registers, instruction.get(1), instruction.get(3));
                 break;
-            case 5:
-                BNEZ(registers, word.get(1), word.get(3));
+            case Codes.BNEZ:
+                BNEZ(registers, instruction.get(1), instruction.get(3));
                 break;
-            case 3:
-                JAL(registers, word.get(3));
+            case Codes.JAL:
+                JAL(registers, instruction.get(3));
                 break;
-            case 2:
-                JR(registers, word.get(1));
+            case Codes.JR:
+                JR(registers, instruction.get(1));
                 break;
-            case 35:
-                value = load.LW((word.get(3) + registers.getRegister(word.get(1))), memory, currentCore, barrier);
+            case Codes.LW:
+                value = load.LW((instruction.get(3) + registers.getRegister(instruction.get(1))), memory, currentCore, barrier);
                 if(value != Codes.FAILURE){
-                    registers.setRegister(word.get(2), value);
+                    registers.setRegister(instruction.get(2), value);
                 }else{
+                    // En caso de no haber podido terminar, regresa el PC para volver a ejecutar el LW.
                     registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) - 4);
                 }
                 break;
-            case 43:
-                value = store.SW((word.get(3) + registers.getRegister(word.get(1))), memory, currentCore, registers.getRegister(word.get(2)), barrier);
+            case Codes.SW:
+                value = store.SW((instruction.get(3) + registers.getRegister(instruction.get(1))), memory, currentCore, registers.getRegister(instruction.get(2)), barrier);
                 if(value == Codes.FAILURE){
+                    // En caso de no haber podido terminar, regresa el PC para volver a ejecutar el SW.
                     registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) - 4);
                 }
                 break;
-            case 63:
+            case Codes.FIN:
                 FIN();
-                /*// Esto es temporal. Se debe agregar en otra parte
-                Registers context = new Registers(registers);
-
-                currentCore.addContext(context);
-                for(int i = 0; i < 32; i++){
-                    registers.setRegister(i, Codes.EMPTY_REGISTER);
-                }*/
                 break;
-        }
-
-        System.out.println("Registers");
-
-        int index = 0;
-        for(int i = 0; i < 8; i++){
-            for(int j = 0; j < 4; j++) {
-                System.out.print(registers.getRegister(index) + " ");
-                index++;
-            }
-            System.out.println();
         }
 
         registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) + 4);
     }
 
-
-    private void DADDI(Registers registers, int trgRegister, int srcRegister, int inm) {
-        registers.setRegister(trgRegister, registers.getRegister(srcRegister) + inm);
+    /**
+     * Instrucción DADDI
+     * @param registers Referencia a los registros.
+     * @param trgRegister Registro destino.
+     * @param srcRegister Registro fuente.
+     * @param imn Valor inmediato.
+     */
+    private void DADDI(Registers registers, int trgRegister, int srcRegister, int imn) {
+        registers.setRegister(trgRegister, registers.getRegister(srcRegister) + imn);
     }
 
+    /**
+     * Instrucción DADD
+     * @param registers Referencia a los registros.
+     * @param srcRegister1 Registro fuente 1.
+     * @param srcRegister2 Registro fuente 2.
+     * @param trgRegister Registro destino.
+     */
     private void DADD(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
         registers.setRegister(trgRegister, (registers.getRegister(srcRegister1) + registers.getRegister(srcRegister2)));
     }
 
+    /**
+     * Instrucción DSUB
+     * @param registers Referencia a los registros.
+     * @param srcRegister1 Registro fuente 1.
+     * @param srcRegister2 Registro fuente 2.
+     * @param trgRegister Registro destino.
+     */
     private void DSUB(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
         registers.setRegister(trgRegister, (registers.getRegister(srcRegister1) - registers.getRegister(srcRegister2)));
     }
 
+    /**
+     * Instrucción DMUL
+     * @param registers Referencia a los registros.
+     * @param srcRegister1 Registro fuente 1.
+     * @param srcRegister2 Registro fuente 2.
+     * @param trgRegister Registro destino.
+     */
     private void DMUL(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
         registers.setRegister(trgRegister, (registers.getRegister(srcRegister1) * registers.getRegister(srcRegister2)));
     }
 
+    /**
+     * Instrucción DDIV
+     * @param registers Referencia a los registros.
+     * @param srcRegister1 Registro fuente 1.
+     * @param srcRegister2 Registro fuente 2.
+     * @param trgRegister Registro destino.
+     */
     private void DDIV(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
         if(registers.getRegister(srcRegister2) != 0) {
             registers.setRegister(trgRegister, (registers.getRegister(srcRegister1) / registers.getRegister(srcRegister2)));
         }
     }
 
+    /**
+     * Instrucción BEQZ
+     * @param registers Referencia a los registros.
+     * @param srcRegister Registro fuente.
+     * @param imn Valor inmediato.
+     */
     private void BEQZ(Registers registers, int srcRegister, int imn) {
         if(registers.getRegister(srcRegister) == 0){
             registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) + (4 * imn));
         }
     }
 
+    /**
+     * Instrucción BNEZ
+     * @param registers Referencia a los registros.
+     * @param srcRegister Registro fuente.
+     * @param imn Valor inmediato.
+     */
     private void BNEZ(Registers registers, int srcRegister, int imn) {
         if(registers.getRegister(srcRegister) != 0){
             registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) + (4 * imn));
         }
     }
 
+    /**
+     * Instrucción JAL
+     * @param registers Referencia a los registros.
+     * @param imn Valor inmediato.
+     */
     private void JAL(Registers registers, int imn) {
         registers.setRegister(31, registers.getRegister(Codes.PC)+4);
         registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) + imn);
     }
 
+    /**
+     * Instrucción JR
+     * @param registers Referencia a los registros.
+     * @param srcRegister Registro fuente.
+     */
     private void JR(Registers registers, int srcRegister) {
         registers.setRegister(Codes.PC, registers.getRegister(srcRegister) - 4);
     }
 
-    private int FIN() {
-        return Codes.END;
+    /**
+     * Instrucción fin
+     */
+    private void FIN() {
+
     }
 }

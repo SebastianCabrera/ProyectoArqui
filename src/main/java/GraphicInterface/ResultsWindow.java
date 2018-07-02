@@ -1,6 +1,5 @@
 package GraphicInterface;
 
-import Abstracts.Core;
 import Control.Program;
 import Enums.Codes;
 
@@ -21,6 +20,9 @@ import javax.swing.JComboBox;
 import javax.swing.JButton;
 import javax.swing.DefaultComboBoxModel;
 
+/**
+ * Interfaz gráfica que muestra los resultados finales de la simulación.
+ */
 public class ResultsWindow extends JFrame {
 
     private JPanel contentPane;
@@ -334,8 +336,8 @@ public class ResultsWindow extends JFrame {
             for(int j = 0; j < 4; j++){
                 table.setValueAt("" + dataCache.get(i).get(j), j, i);
             }
-            table.setValueAt("" + tags.get(i), 4, i);
-            table.setValueAt("" + states.get(i), 5, i);
+            table.setValueAt("T: " + tags.get(i), 4, i);
+            table.setValueAt("S: " + states.get(i), 5, i);
         }
     }
 

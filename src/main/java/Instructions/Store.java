@@ -1,6 +1,6 @@
 package Instructions;
 
-import Abstracts.Core;
+import Cores.SingleCore;
 import Enums.Codes;
 import Structures.DataMemory;
 
@@ -9,14 +9,31 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Clase que contiene la lógica de la instrucción STORE
+ */
 public class Store {
+
+    // Vector con referencias a las estructuras reservadas por candados.
     private Vector<ReentrantLock> reservedStructures;
 
+    /**
+     * Constructor de la clase
+     */
     public Store(){
         this.reservedStructures = new Vector<>();
     }
 
-    public int SW(int memDirection, DataMemory memory, Core currentCore, int registerValue, CyclicBarrier barrier){
+    /**
+     * Instrucción SW.
+     * @param memDirection Dirección de memoria a acceder
+     * @param memory Referencia a la memoria de datos
+     * @param currentCore Referencia al núcleo que ejecuta la instrucción
+     * @param registerValue Valor del registro que se quiere guardar en memoria
+     * @param barrier Referencia a la barrera de los ciclos
+     * @return Código de error o de éxito
+     */
+    public int SW(int memDirection, DataMemory memory, SingleCore currentCore, int registerValue, CyclicBarrier barrier){
         // Obtiene número de bloque
         int block = currentCore.calculateDataBlockNumber(memDirection);
 
@@ -28,7 +45,7 @@ public class Store {
             return this.restart();
         }
 
-        // Si sigue aquí, es que on está reservada y se bloqueó.
+        // Si sigue aquí, es que no está reservada y se bloqueó.
         this.reservedStructures.add(currentCore.getDataCache().getPositionLock(position));
 
         // Obtener estado en myCache
@@ -122,9 +139,9 @@ public class Store {
                 return this.restart();
             }
 
-            // Cargar bloque en caché propia (40 ciclos, controlar con barrera).
+            // Cargar bloque en caché propia (39 ciclos + ciclo externo en SingleCore).
             int j = 0;
-            while(j<40)
+            while(j<39)
             {
                 try {
                     System.err.println("CORE " + currentCore.getCoreId() + ": BARRIER STORE");
@@ -151,7 +168,15 @@ public class Store {
         return this.finishSW(memDirection, currentCore, position, registerValue);
     }
 
-    private int finishSW(int memDirection, Core currentCore, int position, int registerValue){
+    /**
+     * Método auxiliar que maneja el fin del LW
+     * @param memDirection Dirección de memoria a acceder
+     * @param currentCore Referencia al núcleo que ejecuta la instrucción
+     * @param position Posición que está siendo usada en la caché
+     * @param registerValue
+     * @return Código de error o de éxito
+     */
+    private int finishSW(int memDirection, SingleCore currentCore, int position, int registerValue){
         currentCore.getDataCache().setWord(position, currentCore.calculateDataWordPosition(memDirection), registerValue);
         currentCore.getDataCache().getPositionLock(position).unlock();
 
@@ -160,6 +185,10 @@ public class Store {
         return Codes.SUCCESS;
     }
 
+    /**
+     * En caso de no obtener algún candado, se liberan todos.
+     * @return Código de error.
+     */
     private int restart(){
         for(int i = 0; i < this.reservedStructures.size(); i++){
             if(this.reservedStructures.get(i).isLocked()) {
