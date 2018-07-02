@@ -330,16 +330,23 @@ public class ResultsWindow extends JFrame {
                 break;
         }
 
-        for(int i = 0; i < 4; i++){
+        for(int i = 0; i < table.getColumnCount(); i++){
             for(int j = 0; j < 4; j++){
-                table.setValueAt("" + dataCache.get(i).get(j), i, j);
+                table.setValueAt("" + dataCache.get(i).get(j), j, i);
             }
-        }
-
-        for(int i = 0; i < 4; i++){
             table.setValueAt("" + tags.get(i), 4, i);
             table.setValueAt("" + states.get(i), 5, i);
         }
+    }
 
+    public void fillDataTable(Vector<Integer> memory){
+        int index = 0;
+
+        for(int i = 0; i < this.tableDataMem.getColumnCount(); i++){
+            for(int j = 0; j < this.tableDataMem.getRowCount(); j++){
+                this.tableDataMem.setValueAt("P" + index + ": " + memory.get(index),j,i);
+                index++;
+            }
+        }
     }
 }

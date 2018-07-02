@@ -49,4 +49,5 @@ public enum Codes {
     public static final int TOTAL_INSTRUCTION_PARAMETERS = 4;
     public static final int TOTAL_CORES = 3;
     public static final int DATA_BLOCK_BYTES = 16;
+    public static final int BLOCK_BYTES = 16;
 }

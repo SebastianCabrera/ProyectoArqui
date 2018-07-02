@@ -1,7 +1,6 @@
 package Control;
 
 import Abstracts.Core;
-import Cores.DualCore;
 import Cores.SingleCore;
 import Enums.Codes;
 import GraphicInterface.ResultsWindow;
@@ -56,7 +55,7 @@ public class Program {
 
         this.rw = new ResultsWindow(this);
 
-        this.quantum = 10; //Cambiar, que sea segun el usuario
+        this.quantum = Integer.MAX_VALUE; //Cambiar, que sea segun el usuario
         rw.setLocationRelativeTo(null);
     }
 
@@ -214,6 +213,9 @@ public class Program {
         rw.setTotalCyclesValue(this.clock);
 
         rw.fillCacheTable(this.core0.getDataCache().getCache(), this.core0.getDataCache().getTags(), this.core0.getDataCache().getStates(), this.core0.getCoreId());
+        rw.fillCacheTable(this.core1.getDataCache().getCache(), this.core1.getDataCache().getTags(), this.core1.getDataCache().getStates(), this.core1.getCoreId());
+
+        rw.fillDataTable(this.dataMemory.getMemory());
     }
 
     public Vector<Integer> getRegistersByFileID(int fileID){

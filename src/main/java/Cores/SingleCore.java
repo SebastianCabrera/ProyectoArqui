@@ -19,8 +19,7 @@ public class SingleCore extends Core {
     public SingleCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier, Vector<Integer> fbd,
                       Vector<Integer> ft, Semaphore s, Vector<Registers> res, int quantum, Queue<Registers> contextsList,
                       Queue<Integer> contextsListID, CyclicBarrier cycleBarrier, int id){
-        super(Codes.BLOCKS_IN_CACHE_1, insMem, dataMem, programBarrier, fbd, ft, s, res, contextsList, contextsListID, cycleBarrier, quantum);
-        this.coreId = id;
+        super(insMem, dataMem, programBarrier, fbd, ft, s, res, contextsList, contextsListID, cycleBarrier, quantum, id);
     }
 
     @Override
@@ -80,7 +79,7 @@ public class SingleCore extends Core {
                                     position = block % 4;
 
                                     if (this.instructionCache.getTag(position) != block) {
-                                        this.instructionCache.setBlock(position, this.instructionMemory.getBlock(direction));
+                                        this.instructionCache.setBlock(position, this.instructionMemory.getBlock(this.getBlockBegin(this.getRealInstructionDirection(direction))));
                                         this.instructionCache.setTag(position, block);
                                     }
 
@@ -142,7 +141,7 @@ public class SingleCore extends Core {
         try {
             this.cycleBarrier.reset();
             System.err.println("CORE " + this.coreId + ": BARRIER GENERAL");
-            barrier.await();
+            this.generalBarrier.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (BrokenBarrierException e) {

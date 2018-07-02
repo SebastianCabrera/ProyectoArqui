@@ -1,24 +1,27 @@
 package Instructions;
 
 import Abstracts.Core;
-import Abstracts.InstructionsResources;
 import Enums.Codes;
 import Structures.DataMemory;
 
+import java.util.Vector;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class Store extends InstructionsResources{
+public class Store {
+    private Vector<ReentrantLock> reservedStructures;
+
     public Store(){
-        super();
+        this.reservedStructures = new Vector<>();
     }
 
     public int SW(int memDirection, DataMemory memory, Core currentCore, int registerValue, CyclicBarrier barrier){
         // Obtiene número de bloque
-        int block = this.calculateBlock(memDirection);
+        int block = currentCore.calculateDataBlockNumber(memDirection);
 
         // Obtiene número de posición en caché
-        int position = this.calculateCachePosition(block, currentCore.getCoreId());
+        int position = currentCore.calculateCachePosition(block, currentCore.getCoreId());
 
         // Si la posición está reservada, reinicia
         if(!(currentCore.getDataCache().getPositionLock(position).tryLock())){
@@ -47,8 +50,9 @@ public class Store extends InstructionsResources{
                 // Si sigue aquí, es porque no estaba reservada y se bloque'o
 
                 // Guardar bloque de la caché en memoria.
-                memory.setBlock(tag * 16, currentCore.getDataCache().getBlock(position));
+                memory.setBlock(currentCore.getMemoryDirectionPosition(currentCore.getBlockBegin(tag * 16)), currentCore.getDataCache().getBlock(position));
                 currentCore.getDataCache().setState(position, Codes.I);
+                state = Codes.I;
 
                 memory.getMemoryBusLock().unlock();
             }
@@ -67,7 +71,7 @@ public class Store extends InstructionsResources{
         this.reservedStructures.add(currentCore.getOtherCoreReference().getDataCache().getCacheBusLock());
 
         // Calcular columna en la otra caché
-        int otherCachePosition = this.calculateCachePosition(block, currentCore.getOtherCoreReference().getCoreId());
+        int otherCachePosition = currentCore.calculateCachePosition(block, currentCore.getOtherCoreReference().getCoreId());
 
         // Si no se puede bloquear la posición de la otra caché
         if(!(currentCore.getOtherCoreReference().getDataCache().getPositionLock(otherCachePosition)).tryLock()){
@@ -81,7 +85,7 @@ public class Store extends InstructionsResources{
         char otherCacheState = currentCore.getOtherCoreReference().getDataCache().getState(otherCachePosition);
 
         // Obtener etiqueta en otherCache
-        int otherCacheTag = currentCore.getOtherCoreReference().getDataCache().getTag(position);
+        int otherCacheTag = currentCore.getOtherCoreReference().getDataCache().getTag(otherCachePosition);
 
         // Si el estado en la otra caché es M
         if(otherCacheState == Codes.M) {
@@ -95,7 +99,7 @@ public class Store extends InstructionsResources{
             // Si no está reservada, sigue aquí ya bloqueada
 
             // Guardar bloque de la otra cache en memoria
-            memory.setBlock(otherCacheTag * 16, currentCore.getOtherCoreReference().getDataCache().getBlock(otherCachePosition));
+            memory.setBlock(currentCore.getMemoryDirectionPosition(currentCore.getBlockBegin(otherCacheTag * 16)), currentCore.getOtherCoreReference().getDataCache().getBlock(otherCachePosition));
             memory.getMemoryBusLock().unlock();
 
             // Invalidar posicion
@@ -111,8 +115,8 @@ public class Store extends InstructionsResources{
         currentCore.getOtherCoreReference().getDataCache().getPositionLock(otherCachePosition).unlock();
         currentCore.getOtherCoreReference().getDataCache().getCacheBusLock().unlock();
 
-        // Si el estado en mi cache no es C
-        if(state != Codes.C){
+        // Si el estado en mi cache no es C, o es C pero no es el que busco
+        if((state != Codes.C) || (state == Codes.C && tag != block)){
             // Si no se puede bloquear memoria
             if(!(memory.getMemoryBusLock().tryLock())){
                 return this.restart();
@@ -133,7 +137,7 @@ public class Store extends InstructionsResources{
                 }
                 j++;
             }
-            currentCore.getDataCache().setBlock(position, memory.getBlock(memDirection));
+            currentCore.getDataCache().setBlock(position, memory.getBlock(currentCore.getMemoryDirectionPosition(currentCore.getBlockBegin(memDirection))));
 
 
             // Liberar memoria
@@ -148,11 +152,22 @@ public class Store extends InstructionsResources{
     }
 
     private int finishSW(int memDirection, Core currentCore, int position, int registerValue){
-        currentCore.getDataCache().setWord(position, this.calculateWord(memDirection), registerValue);
+        currentCore.getDataCache().setWord(position, currentCore.calculateDataWordPosition(memDirection), registerValue);
         currentCore.getDataCache().getPositionLock(position).unlock();
 
         this.reservedStructures.clear();
 
         return Codes.SUCCESS;
+    }
+
+    private int restart(){
+        for(int i = 0; i < this.reservedStructures.size(); i++){
+            if(this.reservedStructures.get(i).isLocked()) {
+                this.reservedStructures.get(i).unlock();
+            }
+        }
+        this.reservedStructures.clear();
+
+        return Codes.FAILURE;
     }
 }

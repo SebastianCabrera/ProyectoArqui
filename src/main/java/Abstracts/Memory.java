@@ -5,11 +5,20 @@ import Enums.Codes;
 import java.util.Vector;
 
 /**
- * Created by J.A Rodríguez on 14/06/2018.
+ * Clase abstracta que representa a la memoria principal. Posee atributos y métodos que ambos tipos de
+ * memoria utilizan.
  */
 public abstract class Memory {
-    protected Vector<Integer> memory;
 
+    // Variables
+
+    protected Vector<Integer> memory;   // La memoria almacenada como un vector continuo de enteros.
+
+    /**
+     * Constructor de la estructura. Crea la memoria con un tamaño específico dependiendo se si es la memoria de datos
+     * o de instrucciones y la llena con 1 en cada posición.
+     * @param size El tamaño de la memoria.
+     */
     public Memory(int size) {
         this.memory = new Vector<>(size);
 
@@ -18,15 +27,13 @@ public abstract class Memory {
         }
     }
 
+    // Métodos dedicados a la impresión de datos
+
+    /**
+     * Obtiene la memoria como vector de enteros.
+     * @return La memoria actual.
+     */
     public Vector<Integer> getMemory(){
         return this.memory;
-    }
-
-    protected int getBlockBegin(int direction){
-        if(direction % 16 != 0){
-            return direction - ((direction % 16));
-        }else{
-            return direction;
-        }
     }
 }

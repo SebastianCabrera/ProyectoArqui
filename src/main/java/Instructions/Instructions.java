@@ -20,8 +20,8 @@ import java.util.concurrent.CyclicBarrier;
 
 public class Instructions {
 
-    Load load;
-    Store store;
+    private Load load;
+    private Store store;
 
     public Instructions(){
         this.load = new Load();
@@ -100,50 +100,50 @@ public class Instructions {
     }
 
 
-    public void DADDI(Registers registers, int trgRegister, int srcRegister, int inm) {
+    private void DADDI(Registers registers, int trgRegister, int srcRegister, int inm) {
         registers.setRegister(trgRegister, registers.getRegister(srcRegister) + inm);
     }
 
-    public void DADD(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
+    private void DADD(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
         registers.setRegister(trgRegister, (registers.getRegister(srcRegister1) + registers.getRegister(srcRegister2)));
     }
 
-    public void DSUB(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
+    private void DSUB(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
         registers.setRegister(trgRegister, (registers.getRegister(srcRegister1) - registers.getRegister(srcRegister2)));
     }
 
-    public void DMUL(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
+    private void DMUL(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
         registers.setRegister(trgRegister, (registers.getRegister(srcRegister1) * registers.getRegister(srcRegister2)));
     }
 
-    public void DDIV(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
+    private void DDIV(Registers registers, int srcRegister1, int srcRegister2, int trgRegister) {
         if(registers.getRegister(srcRegister2) != 0) {
             registers.setRegister(trgRegister, (registers.getRegister(srcRegister1) / registers.getRegister(srcRegister2)));
         }
     }
 
-    public void BEQZ(Registers registers, int srcRegister, int imn) {
+    private void BEQZ(Registers registers, int srcRegister, int imn) {
         if(registers.getRegister(srcRegister) == 0){
             registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) + (4 * imn));
         }
     }
 
-    public void BNEZ(Registers registers, int srcRegister, int imn) {
+    private void BNEZ(Registers registers, int srcRegister, int imn) {
         if(registers.getRegister(srcRegister) != 0){
             registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) + (4 * imn));
         }
     }
 
-    public void JAL(Registers registers, int imn) {
+    private void JAL(Registers registers, int imn) {
         registers.setRegister(31, registers.getRegister(Codes.PC)+4);
         registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) + imn);
     }
 
-    public void JR(Registers registers, int srcRegister) {
+    private void JR(Registers registers, int srcRegister) {
         registers.setRegister(Codes.PC, registers.getRegister(srcRegister) - 4);
     }
 
-    public int FIN() {
+    private int FIN() {
         return Codes.END;
     }
 }
