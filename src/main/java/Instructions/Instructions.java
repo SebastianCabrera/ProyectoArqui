@@ -82,7 +82,7 @@ public class Instructions {
                 }
                 break;
             case Codes.FIN:
-                FIN();
+                FIN(currentCore);
                 break;
         }
 
@@ -192,7 +192,7 @@ public class Instructions {
     /**
      * Instrucción fin
      */
-    private void FIN() {
-
+    private void FIN(SingleCore core) {
+        core.stopExecution();
     }
 }

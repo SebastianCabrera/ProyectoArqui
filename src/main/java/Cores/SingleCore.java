@@ -47,6 +47,7 @@ public class SingleCore extends Thread {
     private Vector<Integer> myTakenFiles;         // Vector que guarda el ID de cada hilillo tomado por el núcleo actual.
     private Vector<Registers> results;            // Referencia al vector de resultados finales de cada hilillo.
     private String currentRunningFile;            // Nombre del hilillo ejecutándose actualmente
+    private boolean executeCore;                  // Indica si core continúa ejecutando un hilillo o si debe parar (instrucción FIN encontrada o fin de quantum).
 
     /**
      * Constructor de los núcleos. Utiliza todas las referencias y otras variables necesarias para
@@ -106,6 +107,7 @@ public class SingleCore extends Thread {
         this.instructions = new Instructions();
         this.myTakenFiles = new Vector<>();
         this.currentRunningFile = "";
+        this.executeCore = true;
     }
 
     @Override
@@ -148,7 +150,7 @@ public class SingleCore extends Thread {
                     // Libera el semáforo ya que no necesita revisar más.
                     this.filesStatusSemaphore.release();
 
-                    boolean executeCore = true;
+                    executeCore = true;
 
                     boolean instructionsFailure = false;
 
@@ -212,11 +214,6 @@ public class SingleCore extends Thread {
 
                                 // Instrucción
                                 Vector<Integer> instruction = this.instructionCache.getWord(position, word);
-
-                                // TODO Freno por ahora
-                                if (instruction.toString().equals("[63, 0, 0, 0]")) {
-                                    executeCore = false;
-                                }
 
                                 //Se ejecuta la instruccion del hilillo
                                 this.instructions.decode(this.registers, instruction, this.dataMemory, this, this.cycleBarrier);
@@ -297,20 +294,18 @@ public class SingleCore extends Thread {
         this.otherCoreReference = reference;
     }
 
-    // TODO este método no debería obtener registros como parámetros, se supone que voy a guardar mis propios registros.
-    /**
-     * Agrega los registros actuales a la lista de contextos
-     * @param registers // TODO
-     */
-    public void addContext(Registers registers){
-        this.contextsList.add(registers);
-    }
-
     /**
      * Agrega un ciclo al reloj del núcleo
      */
     public void addToClock(){
         this.clock++;
+    }
+
+    /**
+     * Cambia el estado de ejecución del núcleo para que se detenga
+     */
+    public void stopExecution(){
+        this.executeCore = false;
     }
 
     // Métodos obtenedores
@@ -332,14 +327,6 @@ public class SingleCore extends Thread {
     }
 
     /**
-     * Obtiene una referencia a la caché de instrucciones del núcleo.
-     * @return La caché de instrucciones del núcleo.
-     */
-    public InstructionCache getInstructionCache(){
-        return this.instructionCache;
-    }
-
-    /**
      * Obtiene el ID del núcleo actual.
      * @return El ID del núcleo.
      */
@@ -353,30 +340,6 @@ public class SingleCore extends Thread {
      */
     public SingleCore getOtherCoreReference(){
         return this.otherCoreReference;
-    }
-
-    /**
-     * Obtiene una referencia a los registros del núcleo.
-     * @return Los registros del núcleo.
-     */
-    public Registers getRegisters(){
-        return this.registers;
-    }
-
-    /**
-     * Obtiene la lista con todos los contextos guardados del núcleo
-     * @return la lista de contextos del núcleo.
-     */
-    public Queue<Registers> getContextsList(){
-        return this.contextsList;
-    }
-
-    /**
-     * Obtiene la lista de IDs de hilillos que fueron tomados por el núcleo
-     * @return la lista IDs de hilillos
-     */
-    public Vector<Integer> getMyTakenFiles(){
-        return this.myTakenFiles;
     }
 
     /**
@@ -473,6 +436,8 @@ public class SingleCore extends Thread {
     private int calculateWord(int direction){
         return (direction % Codes.BLOCK_BYTES) / Codes.INSTRUCTIONS_WORD_SIZE;
     }
+
+    // Métodos acociados a impresiones
 
     /**
      * Obtiene el nombre del hilillo que está ejecutándose actualmente
