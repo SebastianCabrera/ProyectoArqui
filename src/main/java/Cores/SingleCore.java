@@ -20,8 +20,10 @@ public class SingleCore extends Thread {
     private DataMemory dataMemory;                // Referencia a la memoria de datos compartida.
     private InstructionMemory instructionMemory;  // Referencia a la memoria de instrucciones compartida.
     private int clock;                            // Reloj del núcleo. Todos los núcleos deben mantenerlo igual en cada iteración.
+    private int userSlowModeCycles;               // Cantidad de ciclos para activar el modo lento.
     private CyclicBarrier generalBarrier;         // Referencia a la barrera que sincroniza a las impresiones.
     private CyclicBarrier cycleBarrier;           // Referencia a la barrera que sincroniza a los núcleos.
+    private CyclicBarrier slowModeBarrier;        // Referencia a la barrera que controla el modo lento.
     private Queue<Registers> contextsList;        // Referencia a la cola de contextos del programa.
     private Queue<Integer> contextsListID;        // Referencia a la cola que indica el ID del hilillo que esta en la cola de contextos en cierta posicion.
 
@@ -31,9 +33,9 @@ public class SingleCore extends Thread {
     private InstructionCache instructionCache;    // Caché de instrucciones propia del núcleo.
     private Registers registers;                  // Registros asociados al núcleo
     private int coreId;                           // Identificación del núcleo actual.
-    private int quantum;                          // El quantum que define el usuario para los nucleos
+    private int userQuantum;                      // El quantum que define el usuario para los nucleos
     private boolean finished;                     // Indica si el nucleo no tiene mas hilillos por ejecutar
-    private boolean semaphoreState;               // Auxilar que permite saber el estado del semaforo
+    private int currentQuantum;                   // El quantum que le sobra al núcleo actualmente
 
     // Variables de utilidades
 
@@ -44,6 +46,7 @@ public class SingleCore extends Thread {
     private Semaphore filesStatusSemaphore;       // Semáforo para modificar la lista de hilillos tomados de forma atómica.
     private Vector<Integer> myTakenFiles;         // Vector que guarda el ID de cada hilillo tomado por el núcleo actual.
     private Vector<Registers> results;            // Referencia al vector de resultados finales de cada hilillo.
+    private String currentRunningFile;            // Nombre del hilillo ejecutándose actualmente
 
     /**
      * Constructor de los núcleos. Utiliza todas las referencias y otras variables necesarias para
@@ -60,10 +63,12 @@ public class SingleCore extends Thread {
      * @param cycleBarrier La referencia a la barrera que controla los ciclos de cada núcleo.
      * @param quantum El quantum que se le dará a cada núcleo.
      * @param id El identificador del núcleo.
+     * @param slowCycles Cantidad de ciclos que el usuario definió para activar el modo lento.
+     * @param slowBarrier La referencia a la barrera que controla el modo lento.
      */
     public SingleCore(InstructionMemory insMem, DataMemory dataMem, CyclicBarrier programBarrier,
                    Vector<Integer> beginDirections, Vector<Integer> taken, Semaphore semaphore, Vector<Registers> resultsRegisters, Queue<Registers> contexts,
-                   Queue<Integer> contextsID, CyclicBarrier cycleBarrier, int quantum, int id){
+                   Queue<Integer> contextsID, CyclicBarrier cycleBarrier, int quantum, int id, int slowCycles, CyclicBarrier slowBarrier){
 
         this.coreId = id;
 
@@ -84,20 +89,23 @@ public class SingleCore extends Thread {
 
         this.generalBarrier = programBarrier;
         this.cycleBarrier = cycleBarrier;
+        this.slowModeBarrier = slowBarrier;
         this.filesBeginDirection = beginDirections;
         this.takenFiles = taken;
         this.filesStatusSemaphore = semaphore;
         this.results = resultsRegisters;
-        this.quantum = quantum;
+        this.userQuantum = quantum;
+        this.currentQuantum = quantum;
         this.finished = false;
-        this.semaphoreState = false;
 
         this.registers = new Registers();
         this.contextsList = contexts;
         this.contextsListID = contextsID;
         this.clock = 0;
+        this.userSlowModeCycles = slowCycles;
         this.instructions = new Instructions();
         this.myTakenFiles = new Vector<>();
+        this.currentRunningFile = "";
     }
 
     @Override
@@ -126,6 +134,7 @@ public class SingleCore extends Thread {
 
                     // Se identifica a cuál hilillo corresponde el contexto.
                     int fileID = contextsListID.poll();
+                    this.currentRunningFile = fileID + ".txt";
 
                     // Se agrega el hilillo actual como tomado por el núcleo actual.
                     this.myTakenFiles.add(fileID);
@@ -146,14 +155,15 @@ public class SingleCore extends Thread {
                     // Se ejecuta el núcleo para ejecutar instrucciones.
                     while (executeCore) {
 
+                        this.tryToWaitSlowMode();
+
                         // Si el quantum llega a 0, se guarda el contexto del hilillo para obtener otro.
-                        if (quantum == 0) {
+                        if (currentQuantum == 0) {
                             try{
                                 // Se toma el semáforo para volver a modificar la cola y estados.
                                 filesStatusSemaphore.acquire();
 
-                                // TODO Quantum del usuario
-                                quantum = 10;
+                                currentQuantum = userQuantum;
 
                                 // Se agregan los registros al final de la cola de contextos junto con su ID
                                 this.contextsList.add(new Registers(this.registers));
@@ -212,7 +222,7 @@ public class SingleCore extends Thread {
                                 this.instructions.decode(this.registers, instruction, this.dataMemory, this, this.cycleBarrier);
 
                                 //Pasa un ciclo, se toma en cuenta para el quantum
-                                this.quantum--;
+                                this.currentQuantum--;
                             }else{
                                 instructionsFailure = false;
                             }
@@ -251,6 +261,9 @@ public class SingleCore extends Thread {
                 System.err.println("CORE " + this.coreId + ": BARRIER FINISH");
                 cycleBarrier.await();
                 this.clock++;
+
+                this.tryToWaitSlowMode();
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (BrokenBarrierException e) {
@@ -459,5 +472,28 @@ public class SingleCore extends Thread {
      */
     private int calculateWord(int direction){
         return (direction % Codes.BLOCK_BYTES) / Codes.INSTRUCTIONS_WORD_SIZE;
+    }
+
+    /**
+     * Obtiene el nombre del hilillo que está ejecutándose actualmente
+     * @return El nombre del hilillo
+     */
+    public String getCurrentRunningFile(){
+        return this.currentRunningFile;
+    }
+
+    /**
+     * Intenta esperar en caso de que las condiciones se cumplan, para el modo lento de impresión de datos.
+     */
+    public void tryToWaitSlowMode(){
+        if((this.userSlowModeCycles != 0) && ((this.clock % this.userSlowModeCycles) == 0)){
+            try {
+                this.slowModeBarrier.await();
+            } catch (BrokenBarrierException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

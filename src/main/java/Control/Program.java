@@ -3,6 +3,7 @@ package Control;
 import Cores.SingleCore;
 import Enums.Codes;
 import GraphicInterface.ResultsWindow;
+import GraphicInterface.SlowModeWindow;
 import Structures.DataMemory;
 import Structures.InstructionMemory;
 import Structures.Registers;
@@ -22,14 +23,15 @@ import java.util.concurrent.Semaphore;
 /**
  * Clase que funciona como programa principal para ejecutar la simulación.
  */
-public class Program {
-    private SingleCore core0;                             // Núcleo 0
-    private SingleCore core1;                             // Núcleo 1
+public class Program extends Thread {
+    private SingleCore core0;                       // Núcleo 0
+    private SingleCore core1;                       // Núcleo 1
     private InstructionMemory instructionMemory;    // Memoria de instrucciones del sistema
     private DataMemory dataMemory;                  // Memoria de datos del sistema
     private int clock;                              // Reloj del sistema
     private final CyclicBarrier generalBarrier;     // Barrera general para controlar cuando terminan los cores e imprimir
     private final CyclicBarrier cycleBarrier;       // Barrera que controla los ciclos de reloj
+    private final CyclicBarrier slowModeBarrier;    // Barrera que se utilizará para controlar el modo lento.
     private Vector<Integer> filesBeginDirection;    // La dirección en la cual inicia cada uno de los hilillos en memoria
     private Vector<Integer> takenFiles;             // Identifica cuáles hilillos ya fueron tomados por un thread
     private Queue<Registers> contextsList;          // Cola de contextos para almacenar en caso de fin de quantum
@@ -37,24 +39,32 @@ public class Program {
     private Semaphore updateFilesSemaphore;         // Semáforo para que se modifiquen los vectores anteriores de forma atómica
     private Vector<Registers> results;              // Vector que almacena los resultados de cada hilillo para imprimir
     private int quantum;                            // Quantum del sistema
+    private int userSlowModeCycles;                 // Ciclos para activar el modo lento
 
+    private SlowModeWindow slowModeWindow;          // Referencia a la ventana del modo lento.
     private ResultsWindow resultsWindow;            // Ventana para imprimir los resultados
 
     /**
      * Constructor del programa.
+     * @param userQuantum El quantum para los núcleos, dado por el usuario.
+     * @param slowModeCycles Cantidad de ciclos que el usuario definió para activar el modo lento.
+     * @param slowModeBarrier La referencia a la barrera que controla el modo lento.
      */
-    public Program(){
+    public Program(int userQuantum, int slowModeCycles, CyclicBarrier slowModeBarrier){
         this.instructionMemory = new InstructionMemory();
         this.dataMemory = new DataMemory();
 
+        this.userSlowModeCycles = slowModeCycles;
         this.clock = 0;
-        this.quantum = Integer.MAX_VALUE; //Cambiar, que sea segun el usuario
+        this.quantum = userQuantum;
 
         // La barrera general controla a los 2 núcleos y al hilo principal
         this.generalBarrier = new CyclicBarrier(3);
 
         // La barrera de ciclos controla a los 2 núcleos
         this.cycleBarrier = new CyclicBarrier(2);
+
+        this.slowModeBarrier = slowModeBarrier;
 
         this.filesBeginDirection = new Vector<>();
 
@@ -141,15 +151,16 @@ public class Program {
     /**
      * Corre el programa principal
      */
-    public void runProgram(){
+    @Override
+    public void run(){
 
         // Creación de los núcleos, con todas las referencias necesarias a estructuras y demás para su correcto funcionamiento.
         core0 = new SingleCore( this.instructionMemory, this.dataMemory, this.generalBarrier, this.filesBeginDirection,
                                 this.takenFiles, this.updateFilesSemaphore, this.results, this.contextsList,
-                                this.contextsListID, this.cycleBarrier, this.quantum, Codes.CORE_0);
+                                this.contextsListID, this.cycleBarrier, this.quantum, Codes.CORE_0, this.userSlowModeCycles, this.slowModeBarrier);
         core1 = new SingleCore( this.instructionMemory, this.dataMemory, this.generalBarrier, this.filesBeginDirection,
                                 this.takenFiles, this.updateFilesSemaphore, this.results, this.contextsList,
-                                this.contextsListID, this.cycleBarrier, this.quantum, Codes.CORE_1);
+                                this.contextsListID, this.cycleBarrier, this.quantum, Codes.CORE_1, this.userSlowModeCycles, this.slowModeBarrier);
 
         // Se coloca una referencia al otro núcleo dentro de cada núcleo para permitir el Snooping de cachés.
         core0.setOtherCoreReference(core1);
@@ -171,6 +182,19 @@ public class Program {
             e.printStackTrace();
         }
 
+        if(slowModeWindow != null) {
+
+            this.slowModeWindow.setFinishAvailable();
+
+            try {
+                System.err.println("BARRIER SLOW (PROGRAM)");
+                this.slowModeBarrier.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (BrokenBarrierException e) {
+                System.out.println("Barrera reiniciada para continuar ejecución.");
+            }
+        }
         // Aparece la ventana de resultados.
         resultsWindow.setVisible(true);
 
@@ -207,5 +231,39 @@ public class Program {
      */
     public Vector<Integer> getRegistersByFileID(int fileID){
         return this.results.get(fileID).getRegisters();
+    }
+
+    /**
+     * Obtiene el nombre del hilillo que está ejecutándose actualmente en un núcleo
+     * @param coreID El núcleo sobre el cual se desea saber cuál hilillo ejecuta
+     * @return El hilillo en ejecución
+     */
+    public String getCurrentRunningFile(int coreID){
+        switch (coreID){
+            case Codes.CORE_0:
+                return this.core0.getCurrentRunningFile();
+            default:
+                return this.core1.getCurrentRunningFile();
+        }
+    }
+
+    /**
+     * Obtiene el reloj actual
+     * @return El reloj general de los núcleos
+     */
+    public int getCurrentClock(){
+        if((this.core0.getClock() - this.core1.getClock()) != 0){
+            return this.clock = Codes.FAILURE;
+        }else{
+            return this.clock = this.core0.getClock();
+        }
+    }
+
+    /**
+     * Le asigna una referencia de la ventana del modo lento al núcleo en caso de haber sido activado
+     * @param window La ventana de modo lento
+     */
+    public void setSlowModeWindow(SlowModeWindow window){
+        this.slowModeWindow = window;
     }
 }

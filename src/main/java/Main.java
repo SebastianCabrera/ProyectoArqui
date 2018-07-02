@@ -1,15 +1,12 @@
 import Control.Program;
+import GraphicInterface.SettingsWindow;
 
 import javax.swing.JOptionPane;
 import javax.swing.UnsupportedLookAndFeelException;
+import java.awt.*;
 
 public class Main {
     public static void main (String args[]) {
-
-        /*************************************************************************************************
-         * Código para iniciar y cambiar el aspecto de las ventanas. ¡No borrar! Se activará luego cuando
-         * lo demás esté listo.
-         *************************************************************************************************/
 
         try {
 
@@ -21,7 +18,7 @@ public class Main {
                     "Appearance error", JOptionPane.ERROR_MESSAGE);
         }
 
-        /*// Para correr la ventana a través de un thread
+        // Para correr la ventana a través de un thread
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
@@ -37,13 +34,6 @@ public class Main {
                             "Execution error", JOptionPane.ERROR_MESSAGE);
                 }
             }
-        });*/
-
-        // Probando con los hilillos (hardcoding)
-        String[] files = {"0.txt", "1.txt", "2.txt", "3.txt", "4.txt", "5.txt"};
-
-        Program program = new Program();
-        program.loadInstructions(files);
-        program.runProgram();
+        });
     }
 }

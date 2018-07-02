@@ -147,6 +147,9 @@ public class Store {
                     System.err.println("CORE " + currentCore.getCoreId() + ": BARRIER STORE");
                     barrier.await();
                     currentCore.addToClock();
+
+                    currentCore.tryToWaitSlowMode();
+
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (BrokenBarrierException e) {

@@ -130,6 +130,9 @@ public class Load {
                 System.err.println("CORE " + currentCore.getCoreId() + ": BARRIER LOAD");
                 barrier.await();
                 currentCore.addToClock();
+
+                currentCore.tryToWaitSlowMode();
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (BrokenBarrierException e) {

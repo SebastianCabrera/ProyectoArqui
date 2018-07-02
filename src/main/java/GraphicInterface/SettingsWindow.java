@@ -1,5 +1,7 @@
 package GraphicInterface;
 
+import Control.Program;
+
 import java.awt.EventQueue;
 
 import javax.swing.JOptionPane;
@@ -21,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.concurrent.CyclicBarrier;
 
 public class SettingsWindow extends JFrame {
 
@@ -28,32 +31,6 @@ public class SettingsWindow extends JFrame {
     private JTextField textFieldQuantum;
     private JTextField textFieldCycles;
     private JFileChooser fileChooser;
-
-    /**
-     * Launch the application.
-     */
-    public static void main(String[] args) {
-        try {
-
-            // Para que las ventanas tengan el aspecto del sistema operativo y no el default de Java
-            javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
-
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
-            JOptionPane.showMessageDialog(null, "Failed to set the program appearance to the\n system default.",
-                    "Appearance error", JOptionPane.ERROR_MESSAGE);
-        }
-
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    SettingsWindow frame = new SettingsWindow();
-                    frame.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
 
     /**
      * Create the frame.
@@ -171,16 +148,32 @@ public class SettingsWindow extends JFrame {
                 if(textFieldQuantum.getText().isEmpty() || (textFieldCycles.isEnabled() && textFieldCycles.getText().isEmpty())){
                     JOptionPane.showMessageDialog(null, "Please, fill the text fields to continue.", "Empty text field error", JOptionPane.ERROR_MESSAGE);
                 }else{
+                    int quantum = Integer.parseInt(textFieldQuantum.getText());
                     dispose();
                     if(fileChooser.showOpenDialog(null) != JFileChooser.CANCEL_OPTION){
                         File[] files = fileChooser.getSelectedFiles();
-                        String selectedFiles = "Selected files:\n";
+                        String[] fileNames = new String[files.length];
                         for(int i = 0; i < files.length; i++){
-                            selectedFiles += files[i].getName() + "\n";
+                            fileNames[i] = files[i].getName();
                         }
-                        selectedFiles += "(Testing message)";
 
-                        JOptionPane.showMessageDialog(null, selectedFiles, "Selected files", JOptionPane.INFORMATION_MESSAGE);
+                        CyclicBarrier slowModeBarrier = new CyclicBarrier(3);
+                        String clockCycles = textFieldCycles.getText();
+                        if(clockCycles.equals("")){
+                            clockCycles = "0";
+                        }
+
+                        Program program = new Program(quantum, Integer.parseInt(clockCycles), slowModeBarrier);
+                        program.loadInstructions(fileNames);
+
+                        if(rdbtnActivated.isSelected()){
+                            SlowModeWindow slowModeWindow = new SlowModeWindow(program, slowModeBarrier, clockCycles);
+                            slowModeWindow.setLocationRelativeTo(null);
+                            slowModeWindow.setVisible(true);
+                            program.setSlowModeWindow(slowModeWindow);
+                        }
+
+                        program.start();
                     }
                 }
 
