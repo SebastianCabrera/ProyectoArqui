@@ -10,7 +10,7 @@ public abstract class Cache {
 
     // Variables.
 
-    protected Vector<Integer> tags;         // Etiquetas de cada posición. Representan el número de bloque.
+    protected Vector<Integer> tags; // Etiquetas de cada posición. Representan el número de bloque.
 
     // Métodos modificadores.
 

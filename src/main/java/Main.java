@@ -22,13 +22,13 @@ public class Main {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    SettingsWindow frame = new SettingsWindow();
+                    SettingsWindow settingsWindow = new SettingsWindow();
 
                     // Para que las ventanas aparezcan en el centro de la pantalla
-                    frame.setLocationRelativeTo(null);
+                    settingsWindow.setLocationRelativeTo(null);
 
                     // Para que aparezca la ventana
-                    frame.setVisible(true);
+                    settingsWindow.setVisible(true);
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(null, "Failed to run the program. Cannot set the thread to execute it.",
                             "Execution error", JOptionPane.ERROR_MESSAGE);

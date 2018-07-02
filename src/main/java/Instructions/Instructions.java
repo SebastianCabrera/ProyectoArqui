@@ -30,9 +30,8 @@ public class Instructions {
      * @param instruction La palabra de instrucciones a ejecutar
      * @param memory La referencia a la memoria de datos del sistema
      * @param currentCore La referencia al núcleo que ejecuta la instrucción
-     * @param barrier La referencia a la barrera de los ciclos para ser eventualmente usada por Load y Store
      */
-    public void decode(Registers registers, Vector<Integer> instruction, DataMemory memory, SingleCore currentCore, CyclicBarrier barrier)
+    public void decode(Registers registers, Vector<Integer> instruction, DataMemory memory, SingleCore currentCore)
     {
         // Valor de retorno de Load o Store
         int value;
@@ -66,7 +65,7 @@ public class Instructions {
                 JR(registers, instruction.get(1));
                 break;
             case Codes.LW:
-                value = load.LW((instruction.get(3) + registers.getRegister(instruction.get(1))), memory, currentCore, barrier);
+                value = load.LW((instruction.get(3) + registers.getRegister(instruction.get(1))), memory, currentCore);
                 if(value != Codes.FAILURE){
                     registers.setRegister(instruction.get(2), value);
                 }else{
@@ -75,7 +74,7 @@ public class Instructions {
                 }
                 break;
             case Codes.SW:
-                value = store.SW((instruction.get(3) + registers.getRegister(instruction.get(1))), memory, currentCore, registers.getRegister(instruction.get(2)), barrier);
+                value = store.SW((instruction.get(3) + registers.getRegister(instruction.get(1))), memory, currentCore, registers.getRegister(instruction.get(2)));
                 if(value == Codes.FAILURE){
                     // En caso de no haber podido terminar, regresa el PC para volver a ejecutar el SW.
                     registers.setRegister(Codes.PC, registers.getRegister(Codes.PC) - 4);

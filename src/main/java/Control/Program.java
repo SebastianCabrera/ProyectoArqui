@@ -174,7 +174,6 @@ public class Program extends Thread {
 
         // El programa principal espera a que los dos núcleos terminen para imprimir resultados.
         try {
-            System.err.println("BARRIER GENERAL (PROGRAM)");
             generalBarrier.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -187,23 +186,15 @@ public class Program extends Thread {
             this.slowModeWindow.setFinishAvailable();
 
             try {
-                System.err.println("BARRIER SLOW (PROGRAM)");
                 this.slowModeBarrier.await();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (BrokenBarrierException e) {
-                System.out.println("Barrera reiniciada para continuar ejecución.");
+                System.out.println("Barrera del modo lento terminada para finalizar ejecución.");
             }
         }
         // Aparece la ventana de resultados.
         resultsWindow.setVisible(true);
-
-        // TODO Borrar impresiones debbug
-
-        System.out.println("Clock0: " + core0.getClock());
-        System.out.println("Clock1: " + core1.getClock());
-
-        // TODO fin del ToDo
 
         // Se asegura que los relojes coinciden
         if((this.core0.getClock() - this.core1.getClock()) != 0){

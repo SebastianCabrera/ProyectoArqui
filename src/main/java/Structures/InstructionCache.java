@@ -70,15 +70,6 @@ public class InstructionCache extends Cache{
     // Métodos obtenedores
 
     /**
-     * Obtiene un bloque de la caché
-     * @param position Posición en la cual se encuentra el bloque
-     * @return Bloque de la caché
-     */
-    public Vector<Vector<Integer>> getBlock(int position){
-        return this.cache.get(position);
-    }
-
-    /**
      * Obtiene una palabra de la caché
      * @param position Posición en la cual se encuentra el bloque
      * @param numWord Posición del bloque en el cual se encuentra la palabra

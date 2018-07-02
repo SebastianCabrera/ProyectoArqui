@@ -5,8 +5,6 @@ import Enums.Codes;
 import Structures.DataMemory;
 
 import java.util.Vector;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -30,10 +28,9 @@ public class Store {
      * @param memory Referencia a la memoria de datos
      * @param currentCore Referencia al núcleo que ejecuta la instrucción
      * @param registerValue Valor del registro que se quiere guardar en memoria
-     * @param barrier Referencia a la barrera de los ciclos
      * @return Código de error o de éxito
      */
-    public int SW(int memDirection, DataMemory memory, SingleCore currentCore, int registerValue, CyclicBarrier barrier){
+    public int SW(int memDirection, DataMemory memory, SingleCore currentCore, int registerValue){
         // Obtiene número de bloque
         int block = currentCore.calculateDataBlockNumber(memDirection);
 
@@ -140,23 +137,8 @@ public class Store {
             }
 
             // Cargar bloque en caché propia (39 ciclos + ciclo externo en SingleCore).
-            int j = 0;
-            while(j<39)
-            {
-                try {
-                    System.err.println("CORE " + currentCore.getCoreId() + ": BARRIER STORE");
-                    barrier.await();
-                    currentCore.addToClock();
+            currentCore.waitFortyCycles();
 
-                    currentCore.tryToWaitSlowMode();
-
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (BrokenBarrierException e) {
-                    e.printStackTrace();
-                }
-                j++;
-            }
             currentCore.getDataCache().setBlock(position, memory.getBlock(currentCore.getMemoryDirectionPosition(currentCore.getBlockBegin(memDirection))));
 
 

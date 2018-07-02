@@ -205,6 +205,9 @@ public class SingleCore extends Thread {
                                     this.instructionCache.setBlock(position, this.instructionMemory.getBlock(this.getBlockBegin(this.getRealInstructionDirection(direction))));
                                     this.instructionCache.setTag(position, block);
 
+                                    // Espera 40 ciclos debido a la carga del bloque desde memoria
+                                    this.waitFortyCycles();
+
                                     this.instructionMemory.getMemoryBusLock().unlock();
                                 }
                             }
@@ -216,7 +219,7 @@ public class SingleCore extends Thread {
                                 Vector<Integer> instruction = this.instructionCache.getWord(position, word);
 
                                 //Se ejecuta la instruccion del hilillo
-                                this.instructions.decode(this.registers, instruction, this.dataMemory, this, this.cycleBarrier);
+                                this.instructions.decode(this.registers, instruction, this.dataMemory, this);
 
                                 //Pasa un ciclo, se toma en cuenta para el quantum
                                 this.currentQuantum--;
@@ -227,7 +230,6 @@ public class SingleCore extends Thread {
 
                         // Espera a que el otro núcleo también ejecute el ciclo para avanzar el reloj a la vez.
                         try {
-                            System.err.println("CORE " + this.coreId + ": BARRIER INSTRUCTION");
                             cycleBarrier.await();
                             this.clock++;
                         } catch (InterruptedException e) {
@@ -255,7 +257,6 @@ public class SingleCore extends Thread {
         // avanza el reloj por cada instrucción ejecutada por el otro núcleo.
         do {
             try {
-                System.err.println("CORE " + this.coreId + ": BARRIER FINISH");
                 cycleBarrier.await();
                 this.clock++;
 
@@ -264,7 +265,7 @@ public class SingleCore extends Thread {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (BrokenBarrierException e) {
-                System.out.println("Barrera reiniciada para que los cores terminen.");
+                System.out.println("Barrera de ciclos terminada para que los cores finalicen.");
             }
         }while (!this.otherCoreReference.getFinishedState());
 
@@ -272,7 +273,6 @@ public class SingleCore extends Thread {
             // Debido una posible desincronización al final de la ejecución, se desactiva la barrera, pues para este punto
             // ya ambos núcleos debieron haber terminado.
             this.cycleBarrier.reset();
-            System.err.println("CORE " + this.coreId + ": BARRIER GENERAL");
 
             // Espera a que el otro núcleo llegue a esta barrera para acabar el programa juntos y que el hilo principal
             // pueda imprimir resultados.
@@ -435,6 +435,29 @@ public class SingleCore extends Thread {
      */
     private int calculateWord(int direction){
         return (direction % Codes.BLOCK_BYTES) / Codes.INSTRUCTIONS_WORD_SIZE;
+    }
+
+    /**
+     * Espera 39 ciclos sin ejecutar con el fin de resolver un fallo (carga o guardado de bloque)
+     * NOTA: son 39 porque el ciclo externo del núcleo siempre aumenta el reloj en 1.
+     */
+    public void waitFortyCycles(){
+        int i = 0;
+        while(i<39)
+        {
+            try {
+                this.cycleBarrier.await();
+                this.clock++;
+
+                this.tryToWaitSlowMode();
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (BrokenBarrierException e) {
+                e.printStackTrace();
+            }
+            i++;
+        }
     }
 
     // Métodos acociados a impresiones
